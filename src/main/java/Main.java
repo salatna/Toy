@@ -17,23 +17,25 @@ public class Main {
         Driver.load();
 
         Connection conn = new Driver().connect("jdbc:h2:~/test", new Properties());
-        conn.createStatement().execute("DROP TABLE IF EXISTS MYTEST");
-        conn.createStatement().execute("CREATE TABLE IF NOT EXISTS MYTEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-        conn.createStatement().execute("INSERT INTO MYTEST VALUES (1, 'One')");
+        conn.createStatement().execute("DROP TABLE IF EXISTS ACCOUNTS");
+        conn.createStatement().execute("CREATE TABLE IF NOT EXISTS ACCOUNTS(ID INT PRIMARY KEY, AMOUNT NUMBER(10,2))");
+        conn.createStatement().execute("INSERT INTO ACCOUNTS VALUES (1, 100)");
+        conn.createStatement().execute("INSERT INTO ACCOUNTS VALUES (2, 0)");
 
         Undertow server = Undertow.builder()
                 .addHttpListener(8080, "0.0.0.0")
                 .setHandler(Handlers.pathTemplate()
-                        .add("/item/{itemId}", in -> {
+                        .add("/account/{id}", in -> {
                             Map<String, Deque<String>> params = in.getQueryParameters();
-                            String item = params.get("itemId").getFirst();
-                            PreparedStatement query = conn.prepareStatement("SELECT NAME FROM MYTEST WHERE ID = ?");
+                            String item = params.get("id").getFirst();
+                            PreparedStatement query = conn.prepareStatement("SELECT AMOUNT FROM ACCOUNTS WHERE ID = ?");
                             query.setInt(1, parseInt(item));
                             query.execute();
                             ResultSet rs = query.getResultSet();
                             rs.next();
-                            in.getResponseSender().send(rs.getString("NAME"));
+                            in.getResponseSender().send(rs.getBigDecimal("AMOUNT").toPlainString());
                         })
+                        .add("/transfer/{src}/{dst}/{sum}", in -> in.setStatusCode(404))
                 )
                 .build();
 
