@@ -2,6 +2,7 @@ import io.undertow.Handlers;
 import io.undertow.Undertow;
 import org.h2.Driver;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +13,7 @@ import java.util.Properties;
 
 import static io.undertow.Handlers.pathTemplate;
 import static java.lang.Integer.parseInt;
+import static java.sql.Connection.TRANSACTION_READ_COMMITTED;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
@@ -43,7 +45,19 @@ public class Main {
                                                 }
                                             })
                                             .add("/transfer/{src}/{dst}/{amt}", in -> {
-                                                throw new RuntimeException("Implement me");
+                                                conn.setAutoCommit(false);
+                                                int currentIsolation = conn.getTransactionIsolation();
+                                                conn.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
+
+                                                Map<String, Deque<String>> params = in.getQueryParameters();
+                                                String src = params.get("src").getFirst();
+                                                String dst = params.get("dst").getFirst();
+                                                String amt = params.get("amt").getFirst();
+                                                update(conn, parseInt(src), new BigDecimal(amt).negate());
+                                                update(conn, parseInt(dst), new BigDecimal(amt));
+
+                                                conn.setTransactionIsolation(currentIsolation);
+                                                conn.setAutoCommit(true);
                                             }).handleRequest(exchange);
                                     if (exchange.isResponseChannelAvailable()) {
                                         if (exchange.getStatusCode() == 404) {
@@ -66,5 +80,12 @@ public class Main {
         server.start();
 
 
+    }
+
+    private static void update(Connection conn, int accountId, BigDecimal amount) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("UPDATE ACCOUNTS SET AMOUNT = AMOUNT + ? WHERE ID = ?");
+        stmt.setInt(2, accountId);
+        stmt.setBigDecimal(1, amount);
+        stmt.executeUpdate();
     }
 }
