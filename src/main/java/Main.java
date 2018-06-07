@@ -35,8 +35,11 @@ public class Main {
                                         query.setInt(1, parseInt(item));
                                         query.execute();
                                         ResultSet rs = query.getResultSet();
-                                        rs.next();
-                                        in.getResponseSender().send(rs.getBigDecimal("AMOUNT").toPlainString());
+                                        if (rs.next()){
+                                            in.getResponseSender().send(rs.getBigDecimal("AMOUNT").toPlainString());
+                                        }else{
+                                            exchange.setStatusCode(404);
+                                        }
                                     })
                                     .add("/transfer/{src}/{dst}/{amt}", in -> {
                                         throw new RuntimeException("Implement me");
