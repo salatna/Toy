@@ -10,6 +10,7 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.Properties;
 
+import static io.undertow.Handlers.pathTemplate;
 import static java.lang.Integer.parseInt;
 
 public class Main {
@@ -24,26 +25,39 @@ public class Main {
 
         Undertow server = Undertow.builder()
                 .addHttpListener(8080, "0.0.0.0")
-                .setHandler(Handlers.pathTemplate()
-                        .add("/account/{id}", in -> {
-                            Map<String, Deque<String>> params = in.getQueryParameters();
-                            String item = params.get("id").getFirst();
-                            PreparedStatement query = conn.prepareStatement("SELECT AMOUNT FROM ACCOUNTS WHERE ID = ?");
-                            query.setInt(1, parseInt(item));
-                            query.execute();
-                            ResultSet rs = query.getResultSet();
-                            rs.next();
-                            in.getResponseSender().send(rs.getBigDecimal("AMOUNT").toPlainString());
-                        })
-                        .add("/transfer/{src}/{dst}/{sum}", in -> in.setStatusCode(404))
+                .setHandler(
+                        Handlers.exceptionHandler(exchange -> {
+                            pathTemplate()
+                                    .add("/account/{id}", in -> {
+                                        Map<String, Deque<String>> params = in.getQueryParameters();
+                                        String item = params.get("id").getFirst();
+                                        PreparedStatement query = conn.prepareStatement("SELECT AMOUNT FROM ACCOUNTS WHERE ID = ?");
+                                        query.setInt(1, parseInt(item));
+                                        query.execute();
+                                        ResultSet rs = query.getResultSet();
+                                        rs.next();
+                                        in.getResponseSender().send(rs.getBigDecimal("AMOUNT").toPlainString());
+                                    })
+                                    .add("/transfer/{src}/{dst}/{amt}", in -> {
+                                        throw new RuntimeException("Implement me");
+                                    }).handleRequest(exchange);
+                            if (exchange.getStatusCode() == 404) {
+                                exchange.getResponseSender().send("Not found");
+                            }
+                        }
+                        ).addExceptionHandler(Exception.class,
+                                exchange -> {
+                                    if (exchange.isResponseChannelAvailable()) {
+                                        exchange.setStatusCode(500);
+                                        exchange.getResponseSender().send("Error occured, please contact support");
+                                    }
+                                }
+                        )
                 )
                 .build();
 
 
-
-
         server.start();
-
 
 
     }
