@@ -14,7 +14,7 @@ import static io.undertow.Handlers.pathTemplate;
 import static ru.antalas.back.Persistence.initBack;
 import static ru.antalas.front.Routes.ACCOUNT;
 import static ru.antalas.front.Routes.TRANSFER;
-import static ru.antalas.ssl.SSL.sslContext;
+import static ru.antalas.ssl.SSL.initSSL;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -29,7 +29,7 @@ public class Main {
 
     private static Undertow initFront(Config config, Controllers front) throws Exception {
         return Undertow.builder()
-                .addHttpsListener(config.getInt("webserver.ssl.port"), config.getString("webserver.host"), sslContext(config))
+                .addHttpsListener(config.getInt("webserver.ssl.port"), config.getString("webserver.host"), initSSL(config))
                 .setHandler(
                         exceptionHandler(exchange -> {
                                     pathTemplate()
