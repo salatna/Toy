@@ -1,5 +1,7 @@
 package ru.antalas;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -10,21 +12,23 @@ import java.sql.SQLException;
 
 import static io.undertow.Handlers.exceptionHandler;
 import static io.undertow.Handlers.pathTemplate;
+import static ru.antalas.back.Persistence.initBack;
 import static ru.antalas.front.Routes.ACCOUNT;
 import static ru.antalas.front.Routes.TRANSFER;
-import static ru.antalas.back.Persistence.initBack;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
-        Connection conn = initBack();
-        Undertow server = initFront(new Controllers(conn));
+        Config config = ConfigFactory.load("prod.properties");
+
+        Connection conn = initBack(config);
+        Undertow server = initFront(config, new Controllers(conn));
 
         server.start();
     }
 
-    private static Undertow initFront(Controllers front) {
+    private static Undertow initFront(Config config, Controllers front) {
         return Undertow.builder()
-                .addHttpListener(8080, "0.0.0.0")
+                .addHttpListener(config.getInt("webserver.port"), config.getString("webserver.host"))
                 .setHandler(
                         exceptionHandler(exchange -> {
                                     pathTemplate()

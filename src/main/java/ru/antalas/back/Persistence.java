@@ -1,16 +1,19 @@
 package ru.antalas.back;
 
-import org.h2.Driver;
+import com.typesafe.config.Config;
 
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class Persistence {
-    public static Connection initBack() throws SQLException {
-        Driver.load();
+import static java.sql.DriverManager.getDriver;
 
-        Connection conn = new Driver().connect("jdbc:h2:~/test", new Properties());
+public class Persistence {
+    public static Connection initBack(Config config) throws SQLException {
+        Driver driver = getDriver(config.getString("db.url"));
+
+        Connection conn = driver.connect(config.getString("db.url"), new Properties());
         conn.createStatement().execute("DROP TABLE IF EXISTS ACCOUNTS");
         conn.createStatement().execute("CREATE TABLE IF NOT EXISTS ACCOUNTS(ID INT PRIMARY KEY, AMOUNT NUMBER(10,2))");
         conn.createStatement().execute("INSERT INTO ACCOUNTS VALUES (1, 100)");
