@@ -1,24 +1,25 @@
 package ru.antalas;
 
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import ru.antalas.front.Controllers;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
+import static com.typesafe.config.ConfigFactory.load;
 import static io.undertow.Handlers.exceptionHandler;
 import static io.undertow.Handlers.pathTemplate;
 import static ru.antalas.back.Persistence.initBack;
 import static ru.antalas.front.Routes.ACCOUNT;
 import static ru.antalas.front.Routes.TRANSFER;
+import static ru.antalas.ssl.SSL.sslContext;
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
-        Config config = ConfigFactory.load();
+    public static void main(String[] args) throws Exception {
+        Config config = load("passwords.properties").
+                withFallback(load());
 
         Connection conn = initBack(config);
         Undertow server = initFront(config, new Controllers(conn));
@@ -26,9 +27,9 @@ public class Main {
         server.start();
     }
 
-    private static Undertow initFront(Config config, Controllers front) {
+    private static Undertow initFront(Config config, Controllers front) throws Exception {
         return Undertow.builder()
-                .addHttpListener(config.getInt("webserver.port"), config.getString("webserver.host"))
+                .addHttpsListener(config.getInt("webserver.ssl.port"), config.getString("webserver.host"), sslContext(config))
                 .setHandler(
                         exceptionHandler(exchange -> {
                                     pathTemplate()

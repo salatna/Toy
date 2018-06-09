@@ -20,7 +20,9 @@ public class Acceptance {
         Main.main(null);
 
         RestAssured.config = newConfig().jsonConfig(jsonConfig().numberReturnType(BIG_DECIMAL));
-        RestAssured.port = ConfigFactory.load().getInt("webserver.port");
+        RestAssured.baseURI = "https://localhost";
+        RestAssured.port = ConfigFactory.load().getInt("webserver.ssl.port");
+        RestAssured.useRelaxedHTTPSValidation();
     }
 
     @Test
