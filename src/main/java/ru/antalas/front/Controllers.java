@@ -25,16 +25,16 @@ public class Controllers {
 
     public void account(HttpServerExchange exchange) throws SQLException, JsonProcessingException {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
-        String item = params.get("id").getFirst();
+        String id = params.get("id").getFirst();
 
-        Optional<BigDecimal> amount = Account.amount(connection, item);
+        Optional<BigDecimal> amount = Account.amount(connection, id);
 
         exchange.getResponseHeaders().add(CONTENT_TYPE, "application/json");
         if (amount.isPresent()) {
             exchange.getResponseSender().send(mapper.json(Operations.account(amount.get())));
         } else {
             exchange.setStatusCode(404);
-            exchange.getResponseSender().send(mapper.json(Operations.accountNotFound(item)));
+            exchange.getResponseSender().send(mapper.json(Operations.accountNotFound(id)));
         }
     }
 
