@@ -1,5 +1,8 @@
+package ru.antalas;
+
 import io.undertow.Handlers;
 import io.undertow.Undertow;
+import io.undertow.server.HttpServerExchange;
 import org.h2.Driver;
 
 import java.math.BigDecimal;
@@ -33,31 +36,15 @@ public class Main {
                                             .add("/account/{id}", in -> {
                                                 Map<String, Deque<String>> params = in.getQueryParameters();
                                                 String item = params.get("id").getFirst();
-                                                PreparedStatement query = conn.prepareStatement("SELECT AMOUNT FROM ACCOUNTS WHERE ID = ?");
-                                                query.setInt(1, parseInt(item));
-                                                query.execute();
-                                                ResultSet rs = query.getResultSet();
-                                                if (rs.next()) {
-                                                    in.getResponseSender().send(rs.getBigDecimal("AMOUNT").toPlainString());
-                                                } else {
-                                                    exchange.setStatusCode(404);
-                                                    in.getResponseSender().send("Account #" + item + " not found.");
-                                                }
+                                                out(exchange, in, item, account(conn, item));
                                             })
                                             .add("/transfer/{src}/{dst}/{amt}", in -> {
-                                                conn.setAutoCommit(false);
-                                                int currentIsolation = conn.getTransactionIsolation();
-                                                conn.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
-
                                                 Map<String, Deque<String>> params = in.getQueryParameters();
                                                 String src = params.get("src").getFirst();
                                                 String dst = params.get("dst").getFirst();
                                                 String amt = params.get("amt").getFirst();
-                                                update(conn, parseInt(src), new BigDecimal(amt).negate());
-                                                update(conn, parseInt(dst), new BigDecimal(amt));
 
-                                                conn.setTransactionIsolation(currentIsolation);
-                                                conn.setAutoCommit(true);
+                                                transfer(conn, src, dst, amt);
                                             }).handleRequest(exchange);
                                     if (exchange.isResponseChannelAvailable()) {
                                         if (exchange.getStatusCode() == 404) {
@@ -80,6 +67,35 @@ public class Main {
         server.start();
 
 
+    }
+
+    private static void transfer(Connection conn, String src, String dst, String amt) throws SQLException {
+        conn.setAutoCommit(false);
+        int currentIsolation = conn.getTransactionIsolation();
+        conn.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
+
+        update(conn, parseInt(src), new BigDecimal(amt).negate());
+        update(conn, parseInt(dst), new BigDecimal(amt));
+
+        conn.setTransactionIsolation(currentIsolation);
+        conn.setAutoCommit(true);
+    }
+
+    private static ResultSet account(Connection conn, String item) throws SQLException {
+        PreparedStatement query = conn.prepareStatement("SELECT AMOUNT FROM ACCOUNTS WHERE ID = ?");
+        query.setInt(1, parseInt(item));
+        query.execute();
+        return query.getResultSet();
+    }
+
+    private static void out(HttpServerExchange exchange, HttpServerExchange in, String item, ResultSet rs) throws SQLException {
+        if (rs.next()) {
+            String amount = rs.getBigDecimal("AMOUNT").toPlainString();
+            in.getResponseSender().send(amount);
+        } else {
+            exchange.setStatusCode(404);
+            in.getResponseSender().send("Account #" + item + " not found.");
+        }
     }
 
     private static void update(Connection conn, int accountId, BigDecimal amount) throws SQLException {
