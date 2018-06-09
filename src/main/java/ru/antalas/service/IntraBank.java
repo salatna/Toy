@@ -1,4 +1,4 @@
-package ru.antalas;
+package ru.antalas.service;
 
 public class IntraBank {
 }

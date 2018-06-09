@@ -1,4 +1,4 @@
-package ru.antalas.persistence;
+package ru.antalas.back;
 
 import org.h2.Driver;
 

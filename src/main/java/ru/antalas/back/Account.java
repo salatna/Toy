@@ -1,4 +1,4 @@
-package ru.antalas.persistence;
+package ru.antalas.back;
 
 import java.math.BigDecimal;
 import java.sql.Connection;

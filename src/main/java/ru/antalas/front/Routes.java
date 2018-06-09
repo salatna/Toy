@@ -1,4 +1,4 @@
-package ru.antalas;
+package ru.antalas.front;
 
 public enum Routes {
     ACCOUNT("/account/{id}"),

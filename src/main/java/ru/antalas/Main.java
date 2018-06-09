@@ -3,15 +3,16 @@ package ru.antalas;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import ru.antalas.front.Controllers;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import static io.undertow.Handlers.exceptionHandler;
 import static io.undertow.Handlers.pathTemplate;
-import static ru.antalas.Routes.ACCOUNT;
-import static ru.antalas.Routes.TRANSFER;
-import static ru.antalas.persistence.Persistence.initBack;
+import static ru.antalas.front.Routes.ACCOUNT;
+import static ru.antalas.front.Routes.TRANSFER;
+import static ru.antalas.back.Persistence.initBack;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
