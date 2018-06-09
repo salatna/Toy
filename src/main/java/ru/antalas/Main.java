@@ -10,8 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Deque;
-import java.util.Map;
 import java.util.Properties;
 
 import static io.undertow.Handlers.pathTemplate;
@@ -31,14 +29,8 @@ public class Main {
                         Handlers.exceptionHandler(exchange -> {
                                     pathTemplate()
                                             .add(ACCOUNT.getPath(), front::account)
-                                            .add(TRANSFER.getPath(), in -> {
-                                                Map<String, Deque<String>> params = in.getQueryParameters();
-                                                String src = params.get("src").getFirst();
-                                                String dst = params.get("dst").getFirst();
-                                                String amt = params.get("amt").getFirst();
-
-                                                transfer(conn, src, dst, amt);
-                                            }).handleRequest(exchange);
+                                            .add(TRANSFER.getPath(), front::transfer)
+                                            .handleRequest(exchange);
                                     if (exchange.isResponseChannelAvailable()) {
                                         if (exchange.getStatusCode() == 404) {
                                             exchange.getResponseSender().send("Not found");
@@ -73,7 +65,7 @@ public class Main {
         return conn;
     }
 
-    private static void transfer(Connection conn, String src, String dst, String amt) throws SQLException {
+    static void transfer(Connection conn, String src, String dst, String amt) throws SQLException {
         conn.setAutoCommit(false);
         int currentIsolation = conn.getTransactionIsolation();
         conn.setTransactionIsolation(TRANSACTION_READ_COMMITTED);

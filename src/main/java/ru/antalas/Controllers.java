@@ -21,4 +21,13 @@ public class Controllers {
         String item = params.get("id").getFirst();
         out(exchange, item, Main.account(connection, item));
     }
+
+    public void transfer(HttpServerExchange exchange) throws SQLException {
+        Map<String, Deque<String>> params = exchange.getQueryParameters();
+        String src = params.get("src").getFirst();
+        String dst = params.get("dst").getFirst();
+        String amt = params.get("amt").getFirst();
+
+        Main.transfer(connection, src, dst, amt);
+    }
 }
