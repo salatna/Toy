@@ -18,7 +18,7 @@ import static ru.antalas.front.Routes.TRANSFER;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
-        Config config = ConfigFactory.load("prod.properties");
+        Config config = ConfigFactory.load();
 
         Connection conn = initBack(config);
         Undertow server = initFront(config, new Controllers(conn));
