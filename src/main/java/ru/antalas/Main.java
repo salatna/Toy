@@ -49,16 +49,4 @@ public class Main {
     }
 
 
-
-
-
-    public static void out(HttpServerExchange exchange, String item, ResultSet rs) throws SQLException {
-        if (rs.next()) {
-            String amount = rs.getBigDecimal("AMOUNT").toPlainString();
-            exchange.getResponseSender().send(amount);
-        } else {
-            exchange.setStatusCode(404);
-            exchange.getResponseSender().send("Account #" + item + " not found.");
-        }
-    }
 }
