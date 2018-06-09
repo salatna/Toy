@@ -14,7 +14,6 @@ public class Persistence {
         Driver driver = getDriver(config.getString("db.url"));
 
         Connection conn = driver.connect(config.getString("db.url"), new Properties());
-        conn.createStatement().execute("DROP TABLE IF EXISTS ACCOUNTS");
         conn.createStatement().execute("CREATE TABLE IF NOT EXISTS ACCOUNTS(ID INT PRIMARY KEY, AMOUNT NUMBER(10,2))");
         conn.createStatement().execute("INSERT INTO ACCOUNTS VALUES (1, 100)");
         conn.createStatement().execute("INSERT INTO ACCOUNTS VALUES (2, 0)");
