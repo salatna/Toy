@@ -19,7 +19,6 @@
         <google-collections.version>1.0</google-collections.version>
 
         <!-- build plugins -->
-        <build-helper.version>1.12</build-helper.version>
         <main.class>ru.antalas.Main</main.class>
 
         <!-- test libs -->
