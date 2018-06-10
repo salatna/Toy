@@ -14,7 +14,7 @@ public class Mapper {
         try {
             return mapper.writeValueAsString(in);
         } catch (JsonProcessingException e) {
-            throw new JsonException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -26,7 +26,7 @@ public class Mapper {
         }
     }
 
-    private static class JsonException extends RuntimeException {
+    public static class JsonException extends RuntimeException {
         private JsonException(Exception ex) {
             super(ex);
         }

@@ -7,6 +7,7 @@ import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.BlockingHandler;
 import io.undertow.server.handlers.ExceptionHandler;
 import ru.antalas.front.Handlers;
+import ru.antalas.front.json.Mapper;
 import ru.antalas.model.ModelException;
 
 public class Main {
@@ -25,8 +26,9 @@ public class Main {
                         new BlockingHandler(
                                 new ExceptionHandler(
                                         ROUTES
-                                )   .addExceptionHandler(ModelException.class, Handlers::handleModelException)
-                                    .addExceptionHandler(Throwable.class, Handlers::serverErrorHandler)
+                                ).addExceptionHandler(ModelException.class, Handlers::handleBadRequest)
+                                        .addExceptionHandler(Mapper.JsonException.class, Handlers::handleBadRequest)
+                                        .addExceptionHandler(Throwable.class, Handlers::serverErrorHandler)
                         ))
                 .build();
 

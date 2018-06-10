@@ -2,7 +2,6 @@ package ru.antalas.front;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.ExceptionHandler;
@@ -10,7 +9,6 @@ import io.undertow.util.Headers;
 import ru.antalas.front.json.Account;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.Transfer;
-import ru.antalas.model.ModelException;
 import ru.antalas.persistence.Persistence;
 
 import java.util.Deque;
@@ -65,10 +63,10 @@ public class Handlers {
         exchange.getResponseSender().send("Page Not Found!");
     }
 
-    public static void handleModelException(HttpServerExchange exchange) {
-        ModelException ex = (ModelException) exchange.getAttachment(ExceptionHandler.THROWABLE);
+    public static void handleBadRequest(HttpServerExchange exchange) {
+        Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
         exchange.setStatusCode(400);
-        sendJson(exchange, new ApiError(400, ex.getClass(), ex.getMessage()));
+        sendJson(exchange, new ApiError(400, ex.getMessage()));
     }
 
     public static void serverErrorHandler(HttpServerExchange exchange) {
@@ -85,16 +83,10 @@ public class Handlers {
     private static class ApiError {
         private final int statusCode;
         private final String message;
-        private final String errorType;
 
         ApiError(int statusCode, String message) {
-            this(statusCode, null, message);
-        }
-
-        ApiError(int statusCode, Class<? extends Exception> errorType, String message) {
             super();
             this.statusCode = statusCode;
-            this.errorType = errorType != null ? errorType.getSimpleName() : null;
             this.message = message;
         }
 
@@ -106,11 +98,6 @@ public class Handlers {
         @JsonInclude(Include.NON_NULL)
         public String getMessage() {
             return message;
-        }
-
-        @JsonInclude(Include.NON_NULL)
-        public String getErrorType() {
-            return errorType;
         }
     }
 
