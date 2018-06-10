@@ -1,6 +1,7 @@
 package ru.antalas.persistence;
 
 import com.google.common.collect.ImmutableList;
+import ru.antalas.model.exceptions.TransferException;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class Persistence {
 
     public void transfer(Integer srcId, Integer dstId, BigDecimal amount) {
         if (srcId.equals(dstId)) {
-            throw new IllegalArgumentException();
+            throw new TransferException("Same account");
         }
 
         Lock collectionLock = accountsLock.readLock();
@@ -85,11 +86,22 @@ public class Persistence {
                     }
                 }
             } else {
-                throw new IllegalStateException();
+                throw new TransferException(notFoundMessageFrom(srcId, dstId));
             }
         } finally {
             collectionLock.unlock();
         }
+    }
+
+    private String notFoundMessageFrom(Integer srcId, Integer dstId) {
+        if (accounts.containsKey(srcId)){
+            return dstId + " not found.";
+        }
+        if (accounts.containsKey(dstId)){
+            return srcId + " not found.";
+        }
+
+        return dstId + " and " + srcId + " not found.";
     }
 
     private static class Account implements Comparable<Account> {

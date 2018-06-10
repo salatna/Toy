@@ -3,6 +3,8 @@ package ru.antalas.model;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import ru.antalas.model.exceptions.NegativeAmountException;
+import ru.antalas.model.exceptions.NotInCentsException;
 import ru.antalas.model.exceptions.OverdraftException;
 
 import java.math.BigDecimal;
@@ -20,12 +22,12 @@ public class AccountTest {
         assertThat(acc(1, bd("1.00")), is(acc(1, bd("1.00"))));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NegativeAmountException.class)
     public void shouldErrWhenBalanceNegative() throws Exception {
         acc(1, bd("1.00").negate());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NotInCentsException.class)
     public void shouldErrWhenBalanceNoCents() throws Exception {
         acc(1, bd("0"));
     }
@@ -38,12 +40,11 @@ public class AccountTest {
     @Test
     public void shouldErrWhenOverdraft() throws Exception {
         expectedException.expect(OverdraftException.class);
-        expectedException.expectMessage("Account 1 overdrawn.");
 
         acc(1, bd("1.00")).withdraw(bd("10.00"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NotInCentsException.class)
     public void shouldErrWhenWithdrawNoCents() throws Exception {
         acc(1, bd("10.00")).withdraw(bd("1"));
     }
@@ -53,7 +54,7 @@ public class AccountTest {
         assertThat(acc(1, bd("10.00")).deposit(bd("1.00")), is(acc(1, bd("11.00"))));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NotInCentsException.class)
     public void shouldErrWhenDepositNoCents() throws Exception {
         acc(1, bd("10.00")).deposit(bd("1"));
     }

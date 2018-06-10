@@ -5,7 +5,9 @@ import com.typesafe.config.ConfigFactory;
 import io.undertow.Undertow;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.BlockingHandler;
+import io.undertow.server.handlers.ExceptionHandler;
 import ru.antalas.front.Handlers;
+import ru.antalas.model.exceptions.ModelException;
 
 public class Main {
     private static final RoutingHandler ROUTES = new RoutingHandler()
@@ -20,7 +22,11 @@ public class Main {
         Undertow server = Undertow.builder()
                 .addHttpListener(config.getInt("webserver.port"), config.getString("webserver.host"))
                 .setHandler(
-                        new BlockingHandler(ROUTES))
+                        new BlockingHandler(
+                                new ExceptionHandler(
+                                        ROUTES
+                                ).addExceptionHandler(ModelException.class, Handlers::handleModelException)
+                        ))
                 .build();
 
         server.start();

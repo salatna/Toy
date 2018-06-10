@@ -16,6 +16,7 @@ import static io.restassured.RestAssured.when;
 import static io.restassured.config.JsonConfig.jsonConfig;
 import static io.restassured.config.RestAssuredConfig.newConfig;
 import static io.restassured.path.json.config.JsonPathConfig.NumberReturnType.BIG_DECIMAL;
+import static java.lang.Integer.MAX_VALUE;
 import static org.hamcrest.Matchers.*;
 
 public class Acceptance {
@@ -47,10 +48,10 @@ public class Acceptance {
     @Test
     public void shouldReportMissingAccount() throws Exception {
         when()
-            .get("/accounts/"+Integer.MAX_VALUE).
+            .get("/accounts/"+ MAX_VALUE).
         then()
             .body("statusCode", is(404))
-            .body("message", is("Account " + Integer.MAX_VALUE + " not found."))
+            .body("message", is("Account " + MAX_VALUE + " not found."))
             .statusCode(404);
     }
 
@@ -83,7 +84,23 @@ public class Acceptance {
             .post("/transfers").
         then()
             .body("statusCode", is(400))
-            .body("message", is("Account " + first.getId() + " overdrawn."))
+            .body("errorType", is("OverdraftException"))
+            .statusCode(400);
+    }
+
+    @Test
+    public void shouldErrWhenTransferAccountMissing() throws Exception {
+        Account first = givenAccountWith(new BigDecimal("30.00")).as(Account.class);
+
+        given()
+            .contentType("application/json")
+            .body(new Transfer(first.getId(), MAX_VALUE, new BigDecimal("100.00"))).
+        when()
+            .post("/transfers").
+        then()
+            .body("statusCode", is(400))
+            .body("errorType", is("TransferException"))
+            .body("message", is(MAX_VALUE + " not found."))
             .statusCode(400);
     }
 

@@ -2,16 +2,18 @@ package ru.antalas.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ru.antalas.model.exceptions.NegativeAmountException;
+import ru.antalas.model.exceptions.NonPositiveAmountException;
+import ru.antalas.model.exceptions.NotInCentsException;
 import ru.antalas.model.exceptions.OverdraftException;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class Account implements Comparable<Account>{
+public class Account implements Comparable<Account> {
     private final Integer id;
 
     private BigDecimal balance;
@@ -20,8 +22,14 @@ public class Account implements Comparable<Account>{
     public Account(@JsonProperty("id") Integer id, @JsonProperty("balance") BigDecimal balance) {
         checkNotNull(id);
         checkNotNull(balance);
-        checkArgument(balance.signum() != -1);
-        checkArgument(balance.scale() == 2);
+
+        if (balance.signum() == -1) {
+            throw new NegativeAmountException(balance.toPlainString());
+        }
+
+        if (balance.scale() != 2) {
+            throw new NotInCentsException(balance.toPlainString());
+        }
 
         this.id = id;
         this.balance = balance;
@@ -29,13 +37,19 @@ public class Account implements Comparable<Account>{
 
     public Account withdraw(BigDecimal amount) {
         checkNotNull(amount);
-        checkArgument(amount.signum() == 1);
-        checkArgument(amount.scale() == 2);
+
+        if (amount.signum() != 1) {
+            throw new NonPositiveAmountException(amount.toPlainString());
+        }
+
+        if (amount.scale() != 2) {
+            throw new NotInCentsException(amount.toPlainString());
+        }
 
         BigDecimal updated = balance.subtract(amount);
 
-        if (updated.signum() == -1){
-            throw new OverdraftException("Account " + id + " overdrawn.");
+        if (updated.signum() == -1) {
+            throw new OverdraftException();
         }
 
         balance = updated;
@@ -44,8 +58,14 @@ public class Account implements Comparable<Account>{
 
     public Account deposit(BigDecimal amount) {
         checkNotNull(amount);
-        checkArgument(amount.signum() == 1);
-        checkArgument(amount.scale() == 2);
+
+        if (amount.signum() != 1) {
+            throw new NonPositiveAmountException(amount.toPlainString());
+        }
+
+        if (amount.scale() != 2) {
+            throw new NotInCentsException(amount.toPlainString());
+        }
 
         balance = balance.add(amount);
         return this;

@@ -1,13 +1,16 @@
 package ru.antalas.front;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.util.Headers;
 import ru.antalas.front.json.Account;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.Transfer;
-import ru.antalas.model.exceptions.OverdraftException;
+import ru.antalas.model.exceptions.ModelException;
 import ru.antalas.persistence.Persistence;
 
 import java.util.Deque;
@@ -47,17 +50,7 @@ public class Handlers {
         Transfer transfer = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<Transfer>() {
         });
 
-        try {
-            data.transfer(transfer.getSourceAccountId(), transfer.getDestinationAccountId(), transfer.getAmount());
-        }catch (OverdraftException e){
-            badRequest(exchange, e.getMessage());
-        }
-    }
-
-    private static void badRequest(HttpServerExchange exchange, String message) throws JsonProcessingException {
-        ApiError error = new ApiError(400, message);
-        exchange.setStatusCode(error.getStatusCode());
-        sendJson(exchange, error);
+        data.transfer(transfer.getSourceAccountId(), transfer.getDestinationAccountId(), transfer.getAmount());
     }
 
     private static void notFoundApiResult(HttpServerExchange exchange, String message) throws JsonProcessingException {
@@ -72,6 +65,12 @@ public class Handlers {
         exchange.getResponseSender().send("Page Not Found!");
     }
 
+    public static void handleModelException(HttpServerExchange exchange) throws JsonProcessingException {
+        ModelException ex = (ModelException) exchange.getAttachment(ExceptionHandler.THROWABLE);
+        exchange.setStatusCode(400);
+        sendJson(exchange, new ApiError(400, ex.getClass(), ex.getMessage()));
+    }
+
     private static void sendJson(HttpServerExchange exchange, Object content) throws JsonProcessingException {
         exchange.getResponseHeaders().add(CONTENT_TYPE, "application/json");
         exchange.getResponseSender().send(mapper.json(content));
@@ -80,19 +79,32 @@ public class Handlers {
     private static class ApiError {
         private final int statusCode;
         private final String message;
+        private final String errorType;
 
         ApiError(int statusCode, String message) {
+            this(statusCode, null, message);
+        }
+
+        ApiError(int statusCode, Class<? extends Exception> errorType, String message) {
             super();
             this.statusCode = statusCode;
+            this.errorType = errorType != null ? errorType.getSimpleName() : null;
             this.message = message;
         }
 
-        int getStatusCode() {
+        @SuppressWarnings("WeakerAccess")
+        public int getStatusCode() {
             return statusCode;
         }
 
+        @JsonInclude(Include.NON_NULL)
         public String getMessage() {
             return message;
+        }
+
+        @JsonInclude(Include.NON_NULL)
+        public String getErrorType() {
+            return errorType;
         }
     }
 

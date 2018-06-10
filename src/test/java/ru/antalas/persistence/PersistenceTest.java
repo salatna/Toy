@@ -2,7 +2,10 @@ package ru.antalas.persistence;
 
 import org.junit.Before;
 import org.junit.Test;
+import ru.antalas.front.json.Transfer;
 import ru.antalas.model.Account;
+import ru.antalas.model.exceptions.NonPositiveAmountException;
+import ru.antalas.model.exceptions.TransferException;
 
 import java.math.BigDecimal;
 
@@ -47,27 +50,27 @@ public class PersistenceTest {
         assertThat(persistence.getAccount(2), is(of(new Account(2, new BigDecimal("100.00")))));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = TransferException.class)
     public void shouldErrTransferWhenDestinationMissing() throws Exception {
         persistence.transfer(1, 3, new BigDecimal("100.00"));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = TransferException.class)
     public void shouldErrTransferWhenSourceMissing() throws Exception {
         persistence.transfer(3, 1, new BigDecimal("100.00"));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = TransferException.class)
     public void shouldErrTransferWhenBothMissing() throws Exception {
         persistence.transfer(3, 4, new BigDecimal("100.00"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = TransferException.class)
     public void shouldErrTransferWhenSameAccount() throws Exception {
         persistence.transfer(1, 1, new BigDecimal("100.00"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NonPositiveAmountException.class)
     public void shouldErrTransferWhenZeroAmount() throws Exception {
         persistence.transfer(1, 2, new BigDecimal("0.00"));
     }
