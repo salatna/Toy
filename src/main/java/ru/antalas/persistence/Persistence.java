@@ -16,7 +16,7 @@ import static java.util.Optional.empty;
 
 public class Persistence {
     //protected by accountsLock
-    private int accountIdSequence = 0;
+    private int accountIdSequence = 1;
 
     //equivalent isolation level: SERIALIZED
     private final ReadWriteLock accountsLock = new ReentrantReadWriteLock(true);
@@ -27,9 +27,10 @@ public class Persistence {
         try {
             lock.lock();
 
+            ru.antalas.model.Account data = new ru.antalas.model.Account(accountIdSequence, balance);
+
             accountIdSequence++;
 
-            ru.antalas.model.Account data = new ru.antalas.model.Account(accountIdSequence, balance);
             accounts.put(data.getId(), new Account(data));
             return data;
         } finally {

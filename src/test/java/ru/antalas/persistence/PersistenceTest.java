@@ -30,6 +30,17 @@ public class PersistenceTest {
     }
 
     @Test
+    public void shouldNotIncrementSequenceWhenCreationErrs() throws Exception {
+        //noinspection EmptyCatchBlock
+        try {
+            persistence.createAccount(new BigDecimal("1"));
+        }catch (Exception e){}
+
+        assertThat(persistence.createAccount(new BigDecimal("1.00")), is(new Account(3, new BigDecimal("1.00"))));
+
+    }
+
+    @Test
     public void shouldGetAmountForAccount() throws Exception {
         assertThat(persistence.getAccount(1), is(of(new Account(1, new BigDecimal("100.00")))));
         assertThat(persistence.getAccount(2), is(of(new Account(2, new BigDecimal("0.00")))));
