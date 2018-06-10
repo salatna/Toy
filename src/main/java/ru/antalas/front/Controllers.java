@@ -2,6 +2,7 @@ package ru.antalas.front;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.util.Headers;
 import ru.antalas.back.Account;
 import ru.antalas.back.persistence.Persistence;
 import ru.antalas.front.json.Mapper;
@@ -14,15 +15,10 @@ import java.util.Optional;
 import static io.undertow.util.Headers.CONTENT_TYPE;
 
 public class Controllers {
-    private final Mapper mapper = new Mapper();
+    private static final Mapper mapper = new Mapper();
+    private static final Persistence data = new Persistence();
 
-    private final Persistence data;
-
-    public Controllers(Persistence data) {
-        this.data = data;
-    }
-
-    public void createAccount(HttpServerExchange exchange) throws JsonProcessingException {
+    public static void createAccount(HttpServerExchange exchange) throws JsonProcessingException {
         String id = exchange.getQueryParameters().get("id").getFirst();
         String amount = exchange.getQueryParameters().get("amount").getFirst();
 
@@ -32,7 +28,7 @@ public class Controllers {
         exchange.getResponseSender().send(mapper.json(Operations.account(account)));
     }
 
-    public void account(HttpServerExchange exchange) throws JsonProcessingException {
+    public static void account(HttpServerExchange exchange) throws JsonProcessingException {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
         String id = params.get("id").getFirst();
 
@@ -47,12 +43,18 @@ public class Controllers {
         }
     }
 
-    public void transfer(HttpServerExchange exchange) {
+    public static void transfer(HttpServerExchange exchange) {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
         String src = params.get("src").getFirst();
         String dst = params.get("dst").getFirst();
         String amt = params.get("amt").getFirst();
 
         Account.transfer(data, src, dst, amt);
+    }
+
+    public static void notFoundHandler(HttpServerExchange exchange) {
+        exchange.setStatusCode(404);
+        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+        exchange.getResponseSender().send("Page Not Found!");
     }
 }
