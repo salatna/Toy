@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableMap;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
-import ru.antalas.back.persistence.Persistence;
+import ru.antalas.persistence.Persistence;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.request.Transfer;
 import ru.antalas.model.exceptions.OverdraftException;

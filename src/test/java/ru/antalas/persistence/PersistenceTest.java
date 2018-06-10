@@ -1,4 +1,4 @@
-package ru.antalas.back.persistence;
+package ru.antalas.persistence;
 
 import org.junit.Before;
 import org.junit.Test;

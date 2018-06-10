@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 
 public class Account {
     private final Integer id;
-
     private final BigDecimal balance;
 
     @JsonCreator
@@ -19,7 +18,6 @@ public class Account {
     public Integer getId() {
         return id;
     }
-
     public BigDecimal getBalance() {
         return balance;
     }

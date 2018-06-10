@@ -1,4 +1,4 @@
-package ru.antalas.back.persistence;
+package ru.antalas.persistence;
 
 import com.google.common.collect.ImmutableList;
 
@@ -42,11 +42,11 @@ public class Persistence {
             collectionLock.lock();
 
             if (accounts.containsKey(id)) {
-                Account data = accounts.get(id);
-                Lock itemLock = data.lock.readLock();
+                Account entry = accounts.get(id);
+                Lock itemLock = entry.lock.readLock();
                 try {
                     itemLock.lock();
-                    return Optional.of(data.data);
+                    return Optional.of(entry.data);
                 } finally {
                     itemLock.unlock();
                 }
@@ -68,18 +68,19 @@ public class Persistence {
             collectionLock.lock();
 
             if (accounts.containsKey(srcId) && accounts.containsKey(dstId)) {
-                Account srcData = accounts.get(srcId);
-                Account dstData = accounts.get(dstId);
+                Account srcEntry = accounts.get(srcId);
+                Account dstEntry = accounts.get(dstId);
 
                 try {
-                    for (Account account : srcData.inLockOrder(dstData)) {
-                        account.lock.writeLock().lock();
+                    for (Account entry : srcEntry.inLockOrder(dstEntry)) {
+                        entry.lock.writeLock().lock();
                     }
 
-                    srcData.data.withdraw(amount);
-                    dstData.data.deposit(amount);
+                    srcEntry.data.withdraw(amount);
+                    dstEntry.data.deposit(amount);
+
                 } finally {
-                    for (Account account : srcData.inLockOrder(dstData).reverse()) {
+                    for (Account account : srcEntry.inLockOrder(dstEntry).reverse()) {
                         account.lock.writeLock().unlock();
                     }
                 }
