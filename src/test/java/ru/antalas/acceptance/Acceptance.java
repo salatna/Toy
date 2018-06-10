@@ -6,8 +6,8 @@ import io.restassured.response.Response;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ru.antalas.Main;
-import ru.antalas.front.json.request.Account;
 import ru.antalas.front.json.request.Transfer;
+import ru.antalas.front.json.response.Account;
 
 import java.math.BigDecimal;
 
@@ -33,17 +33,15 @@ public class Acceptance {
         givenAccountWith(new BigDecimal("100.00")).
         then()
             .body("id", not(empty()))
+            .body("balance", is(new BigDecimal("100.00")))
             .statusCode(200);
     }
 
     @Test
     public void shouldGetAccount() throws Exception {
-        ru.antalas.front.json.response.Account first = givenAccountWith(new BigDecimal("100.00")).as(ru.antalas.front.json.response.Account.class);
+        Account first = givenAccountWith(new BigDecimal("100.00")).as(Account.class);
 
-        when()
-            .get("/accounts/"+first.getId()).
-        then()
-            .body("amount", is(new BigDecimal("100.00")));
+        assertAccountHasBalance(first, "100.00");
     }
 
     @Test
@@ -51,14 +49,15 @@ public class Acceptance {
         when()
             .get("/accounts/"+Integer.MAX_VALUE).
         then()
-            .body("id", is(""+Integer.MAX_VALUE))
+            .body("statusCode", is(404))
+            .body("message", is("Account " + Integer.MAX_VALUE + " not found."))
             .statusCode(404);
     }
 
     @Test
     public void shouldTransfer() throws Exception {
-        ru.antalas.front.json.response.Account first = givenAccountWith(new BigDecimal("30.00")).as(ru.antalas.front.json.response.Account.class);
-        ru.antalas.front.json.response.Account second = givenAccountWith(new BigDecimal("0.00")).as(ru.antalas.front.json.response.Account.class);
+        Account first = givenAccountWith(new BigDecimal("30.00")).as(Account.class);
+        Account second = givenAccountWith(new BigDecimal("0.00")).as(Account.class);
 
         given()
             .contentType("application/json")
@@ -68,23 +67,39 @@ public class Acceptance {
         then()
             .statusCode(200);
 
-        when()
-            .get("/accounts/"+first.getId()).
-        then()
-            .body("amount", is(new BigDecimal("15.00")));
+        assertAccountHasBalance(first, "15.00");
+        assertAccountHasBalance(second, "15.00");
+    }
 
-        when()
-            .get("/accounts/"+second.getId()).
-        then()
-            .body("amount", is(new BigDecimal("15.00")));
+    @Test
+    public void shouldErrWhenTransferOverdrafts() throws Exception {
+        Account first = givenAccountWith(new BigDecimal("30.00")).as(Account.class);
+        Account second = givenAccountWith(new BigDecimal("0.00")).as(Account.class);
 
+        given()
+            .contentType("application/json")
+            .body(new Transfer(first.getId(), second.getId(), new BigDecimal("100.00"))).
+        when()
+            .post("/transfers").
+        then()
+            .body("statusCode", is(400))
+            .body("message", is("Account " + first.getId() + " overdrawn."))
+            .statusCode(400);
+    }
+
+    private static void assertAccountHasBalance(Account account, String expectedBalance) {
+        when()
+            .get("/accounts/"+account.getId()).
+        then()
+            .body("id", not(empty()))
+            .body("balance", is(new BigDecimal(expectedBalance)));
     }
 
     private static Response givenAccountWith(BigDecimal amount) {
         return
         given()
             .contentType("application/json")
-            .body(new Account(amount)).
+            .body(new ru.antalas.front.json.request.Account(amount)).
         when()
             .post("/accounts");
     }

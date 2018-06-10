@@ -2,14 +2,14 @@ package ru.antalas.front;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.ImmutableMap;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
-import ru.antalas.back.Account;
 import ru.antalas.back.persistence.Persistence;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.request.Transfer;
+import ru.antalas.model.exceptions.OverdraftException;
 
-import java.math.BigDecimal;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Optional;
@@ -24,29 +24,38 @@ public class Controllers {
         ru.antalas.front.json.request.Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<ru.antalas.front.json.request.Account>() {
         });
 
-        ru.antalas.model.Account account = Account.account(data, input);
+        ru.antalas.model.Account account = data.createAccount(input.getBalance());
 
-        sendJson(exchange, new ru.antalas.front.json.response.Account(account.getId()));
+        sendJson(exchange, new ru.antalas.front.json.response.Account(account.getId(), account.getBalance()));
     }
 
-    public static void account(HttpServerExchange exchange) throws JsonProcessingException {
+    public static void getAccount(HttpServerExchange exchange) throws JsonProcessingException {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
         String id = params.get("id").getFirst();
 
-        Optional<BigDecimal> amount = Account.amount(data, id);
+        Optional<ru.antalas.model.Account> account = data.getAccount(Integer.parseInt(id));
 
-        if (!amount.isPresent()) {
+        Object result;
+        if (account.isPresent()) {
+            result = new ru.antalas.front.json.response.Account(account.get().getId(), account.get().getBalance());
+            sendJson(exchange, result);
+        } else {
             exchange.setStatusCode(404);
+            sendJson(exchange, ImmutableMap.of("statusCode", 404, "message", "Account " + id + " not found."));
         }
 
-        sendJson(exchange, amount.isPresent() ? Operations.account(amount.get()) : Operations.accountNotFound(id));
     }
 
-    public static void transfer(HttpServerExchange exchange) {
+    public static void transfer(HttpServerExchange exchange) throws JsonProcessingException {
         Transfer transfer = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<Transfer>() {
         });
 
-        Account.transfer(data, transfer);
+        try {
+            data.transfer(transfer.getSourceAccountId(), transfer.getDestinationAccountId(), transfer.getAmount());
+        }catch (OverdraftException e){
+            exchange.setStatusCode(400);
+            sendJson(exchange, ImmutableMap.of("statusCode", 400, "message", "Account " + transfer.getSourceAccountId() + " overdrawn."));
+        }
     }
 
     public static void notFoundHandler(HttpServerExchange exchange) {

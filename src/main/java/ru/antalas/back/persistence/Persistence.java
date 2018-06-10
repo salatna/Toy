@@ -14,26 +14,29 @@ import static com.google.common.collect.ImmutableList.of;
 import static java.util.Optional.empty;
 
 public class Persistence {
+    //protected by accountsLock
+    private int accountIdSequence = 0;
+
     //equivalent isolation level: SERIALIZED
     private final ReadWriteLock accountsLock = new ReentrantReadWriteLock(true);
     private final Map<Integer, Account> accounts = new ConcurrentHashMap<>();
 
-    public void create(ru.antalas.model.Account account) {
+    public ru.antalas.model.Account createAccount(BigDecimal balance) {
         Lock lock = accountsLock.writeLock();
         try {
             lock.lock();
 
-            if (accounts.containsKey(account.getId())) {
-                throw new IllegalStateException();
-            }
+            accountIdSequence++;
 
-            accounts.put(account.getId(), new Account(account));
+            ru.antalas.model.Account data = new ru.antalas.model.Account(accountIdSequence, balance);
+            accounts.put(data.getId(), new Account(data));
+            return data;
         } finally {
             lock.unlock();
         }
     }
 
-    public Optional<BigDecimal> amountAt(Integer id) {
+    public Optional<ru.antalas.model.Account> getAccount(Integer id) {
         Lock collectionLock = accountsLock.readLock();
         try {
             collectionLock.lock();
@@ -43,7 +46,7 @@ public class Persistence {
                 Lock itemLock = data.lock.readLock();
                 try {
                     itemLock.lock();
-                    return Optional.of(data.data.getBalance());
+                    return Optional.of(data.data);
                 } finally {
                     itemLock.unlock();
                 }
@@ -102,7 +105,7 @@ public class Persistence {
         }
 
         @Override
-        public int compareTo(Account o) {
+        public int compareTo(@SuppressWarnings("NullableProblems") Account o) {
             return this.data.compareTo(o.data);
         }
     }

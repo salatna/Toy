@@ -1,5 +1,7 @@
 package ru.antalas.model;
 
+import ru.antalas.model.exceptions.OverdraftException;
+
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.Objects;
@@ -27,13 +29,13 @@ public class Account implements Comparable<Account>{
         checkArgument(amount.signum() == 1);
         checkArgument(amount.scale() == 2);
 
-        BigDecimal update = balance.subtract(amount);
+        BigDecimal updated = balance.subtract(amount);
 
-        if (update.signum() == -1){
-            throw new IllegalArgumentException();
+        if (updated.signum() == -1){
+            throw new OverdraftException("Account " + id + " overdrawn.");
         }
 
-        balance = update;
+        balance = updated;
         return this;
     }
 

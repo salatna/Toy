@@ -1,13 +1,20 @@
 package ru.antalas.model;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import ru.antalas.model.exceptions.OverdraftException;
 
 import java.math.BigDecimal;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.rules.ExpectedException.none;
 
 public class AccountTest {
+    @Rule
+    public ExpectedException expectedException = none();
+
     @Test
     public void shouldCreate() throws Exception {
         assertThat(acc(1, bd("1.00")), is(acc(1, bd("1.00"))));
@@ -28,8 +35,11 @@ public class AccountTest {
         assertThat(acc(1, bd("10.00")).withdraw(bd("1.00")), is(acc(1, bd("9.00"))));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void shouldErrWhenOverdraft() throws Exception {
+        expectedException.expect(OverdraftException.class);
+        expectedException.expectMessage("Account 1 overdrawn.");
+
         acc(1, bd("1.00")).withdraw(bd("10.00"));
     }
 
