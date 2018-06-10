@@ -35,10 +35,8 @@ public class Handlers {
 
         Optional<ru.antalas.model.Account> account = data.getAccount(Integer.parseInt(id));
 
-        Object result;
         if (account.isPresent()) {
-            result = account.get();
-            sendJson(exchange, result);
+            sendJson(exchange, account.get());
         } else {
             notFoundApiResult(exchange, "Account " + id + " not found.");
         }
@@ -56,13 +54,13 @@ public class Handlers {
         }
     }
 
-    public static void badRequest(HttpServerExchange exchange, String message) throws JsonProcessingException {
+    private static void badRequest(HttpServerExchange exchange, String message) throws JsonProcessingException {
         ApiError error = new ApiError(400, message);
         exchange.setStatusCode(error.getStatusCode());
         sendJson(exchange, error);
     }
 
-    public static void notFoundApiResult(HttpServerExchange exchange, String message) throws JsonProcessingException {
+    private static void notFoundApiResult(HttpServerExchange exchange, String message) throws JsonProcessingException {
         ApiError error = new ApiError(404, message);
         exchange.setStatusCode(error.getStatusCode());
         sendJson(exchange, error);
@@ -83,13 +81,13 @@ public class Handlers {
         private final int statusCode;
         private final String message;
 
-        public ApiError(int statusCode, String message) {
+        ApiError(int statusCode, String message) {
             super();
             this.statusCode = statusCode;
             this.message = message;
         }
 
-        public int getStatusCode() {
+        int getStatusCode() {
             return statusCode;
         }
 
