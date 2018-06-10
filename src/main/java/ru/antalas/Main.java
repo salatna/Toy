@@ -1,13 +1,13 @@
 package ru.antalas;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import ru.antalas.back.persistence.Persistence;
 import ru.antalas.front.Controllers;
 
-import static com.typesafe.config.ConfigFactory.load;
 import static io.undertow.Handlers.exceptionHandler;
 import static io.undertow.Handlers.pathTemplate;
 import static ru.antalas.front.Routes.ACCOUNT;
@@ -16,10 +16,7 @@ import static ru.antalas.front.Routes.TRANSFER;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Config config = load("passwords.properties").
-                withFallback(load());
-
-        Undertow server = initFront(config, new Controllers(new Persistence()));
+        Undertow server = initFront(ConfigFactory.load(), new Controllers(new Persistence()));
 
         server.start();
     }
