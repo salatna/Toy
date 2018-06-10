@@ -1,6 +1,7 @@
 package ru.antalas.back;
 
 import ru.antalas.back.persistence.Persistence;
+import ru.antalas.front.json.Transfer;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -22,10 +23,7 @@ public class Account {
         return data.amountAt(accountId);
     }
 
-    public static void transfer(Persistence data, String src, String dst, String amt) {
-        Integer srcAccountId = Integer.valueOf(src);
-        Integer dstAccountId = Integer.valueOf(dst);
-        BigDecimal amount = new BigDecimal(amt);
-        data.transfer(srcAccountId, dstAccountId, amount);
+    public static void transfer(Persistence data, Transfer input) {
+        data.transfer(input.getSourceAccountId(), input.getDestinationAccountId(), input.getAmount());
     }
 }

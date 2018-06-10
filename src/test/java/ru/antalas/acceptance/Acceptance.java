@@ -2,6 +2,7 @@ package ru.antalas.acceptance;
 
 import com.typesafe.config.ConfigFactory;
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ru.antalas.Main;
@@ -25,26 +26,13 @@ public class Acceptance {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = ConfigFactory.load().getInt("webserver.port");
 
-        given()
-            .contentType("application/json")
-            .body(new Account(new BigDecimal("100.00"))).
-        when()
-            .post("/accounts");
-
-        given()
-            .contentType("application/json")
-            .body(new Account(new BigDecimal("0.00"))).
-        when()
-            .post("/accounts");
+        givenAccountWith(new BigDecimal("100.00"));
+        givenAccountWith(new BigDecimal("0.00"));
     }
 
     @Test
     public void shouldCreateAccount() throws Exception {
-        given()
-            .contentType("application/json")
-            .body(new Account(new BigDecimal("100.00"))).
-        when()
-            .post("/accounts").
+        givenAccountWith(new BigDecimal("100.00")).
         then()
             .body("accountURI", is("/accounts/3"))
             .statusCode(200);
@@ -65,5 +53,14 @@ public class Acceptance {
         then()
             .body("id", is("99"))
             .statusCode(404);
+    }
+
+    private static Response givenAccountWith(BigDecimal amount) {
+        return
+        given()
+            .contentType("application/json")
+            .body(new Account(amount)).
+        when()
+            .post("/accounts");
     }
 }

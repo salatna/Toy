@@ -7,6 +7,7 @@ import io.undertow.util.Headers;
 import ru.antalas.back.Account;
 import ru.antalas.back.persistence.Persistence;
 import ru.antalas.front.json.Mapper;
+import ru.antalas.front.json.Transfer;
 
 import java.math.BigDecimal;
 import java.util.Deque;
@@ -46,12 +47,10 @@ public class Controllers {
     }
 
     public static void transfer(HttpServerExchange exchange) {
-        Map<String, Deque<String>> params = exchange.getQueryParameters();
-        String src = params.get("src").getFirst();
-        String dst = params.get("dst").getFirst();
-        String amt = params.get("amt").getFirst();
+        Transfer transfer = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<Transfer>() {
+        });
 
-        Account.transfer(data, src, dst, amt);
+        Account.transfer(data, transfer);
     }
 
     public static void notFoundHandler(HttpServerExchange exchange) {

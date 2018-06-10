@@ -11,7 +11,7 @@ public class Main {
     private static final RoutingHandler ROUTES = new RoutingHandler()
             .post("/accounts", Controllers::createAccount)
             .get("/accounts/{id}", Controllers::account)
-            .get("/transfer/{src}/{dst}/{amt}", Controllers::transfer)
+            .post("/transfers", Controllers::transfer)
             .setFallbackHandler(Controllers::notFoundHandler);
 
     public static void main(String[] args) throws Exception {
