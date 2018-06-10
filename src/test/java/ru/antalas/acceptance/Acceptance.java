@@ -51,7 +51,6 @@ public class Acceptance {
             .get("/accounts/"+ MAX_VALUE).
         then()
             .body("statusCode", is(404))
-            .body("message", is("Account " + MAX_VALUE + " not found."))
             .statusCode(404);
     }
 
@@ -84,12 +83,12 @@ public class Acceptance {
             .post("/transfers").
         then()
             .body("statusCode", is(400))
-            .body("errorType", is("OverdraftException"))
+            .body("message", is("Overdraft, check balance."))
             .statusCode(400);
     }
 
     @Test
-    public void shouldErrWhenTransferAccountMissing() throws Exception {
+    public void shouldErrTransferWhenTargetAccountMissing() throws Exception {
         Account first = givenAccountWith(new BigDecimal("30.00")).as(Account.class);
 
         given()
@@ -99,10 +98,39 @@ public class Acceptance {
             .post("/transfers").
         then()
             .body("statusCode", is(400))
-            .body("errorType", is("TransferException"))
             .body("message", is(MAX_VALUE + " not found."))
             .statusCode(400);
     }
+
+    @Test
+    public void shouldErrTransferWhenSourceAccountMissing() throws Exception {
+        Account second = givenAccountWith(new BigDecimal("30.00")).as(Account.class);
+
+        given()
+            .contentType("application/json")
+            .body(new Transfer(MAX_VALUE, second.getId(), new BigDecimal("100.00"))).
+        when()
+            .post("/transfers").
+        then()
+            .body("statusCode", is(400))
+            .body("message", is(MAX_VALUE + " not found."))
+            .statusCode(400);
+    }
+
+    @Test
+    public void shouldErrTransferWhenBothAccountsMissing() throws Exception {
+        given()
+            .contentType("application/json")
+            .body(new Transfer(MAX_VALUE - 1, MAX_VALUE, new BigDecimal("100.00"))).
+        when()
+            .post("/transfers").
+        then()
+            .body("statusCode", is(400))
+            .body("message", is(MAX_VALUE - 1 + " and " + MAX_VALUE + " not found."))
+            .statusCode(400);
+    }
+
+
 
     private static void assertAccountHasBalance(Account account, String expectedBalance) {
         when()

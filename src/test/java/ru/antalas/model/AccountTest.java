@@ -1,33 +1,24 @@
 package ru.antalas.model;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import ru.antalas.model.exceptions.NegativeAmountException;
-import ru.antalas.model.exceptions.NotInCentsException;
-import ru.antalas.model.exceptions.OverdraftException;
 
 import java.math.BigDecimal;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
 
 public class AccountTest {
-    @Rule
-    public ExpectedException expectedException = none();
-
     @Test
     public void shouldCreate() throws Exception {
         assertThat(acc(1, bd("1.00")), is(acc(1, bd("1.00"))));
     }
 
-    @Test(expected = NegativeAmountException.class)
+    @Test(expected = ModelException.class)
     public void shouldErrWhenBalanceNegative() throws Exception {
         acc(1, bd("1.00").negate());
     }
 
-    @Test(expected = NotInCentsException.class)
+    @Test(expected = ModelException.class)
     public void shouldErrWhenBalanceNoCents() throws Exception {
         acc(1, bd("0"));
     }
@@ -37,14 +28,12 @@ public class AccountTest {
         assertThat(acc(1, bd("10.00")).withdraw(bd("1.00")), is(acc(1, bd("9.00"))));
     }
 
-    @Test
+    @Test(expected = ModelException.class)
     public void shouldErrWhenOverdraft() throws Exception {
-        expectedException.expect(OverdraftException.class);
-
         acc(1, bd("1.00")).withdraw(bd("10.00"));
     }
 
-    @Test(expected = NotInCentsException.class)
+    @Test(expected = ModelException.class)
     public void shouldErrWhenWithdrawNoCents() throws Exception {
         acc(1, bd("10.00")).withdraw(bd("1"));
     }
@@ -54,7 +43,7 @@ public class AccountTest {
         assertThat(acc(1, bd("10.00")).deposit(bd("1.00")), is(acc(1, bd("11.00"))));
     }
 
-    @Test(expected = NotInCentsException.class)
+    @Test(expected = ModelException.class)
     public void shouldErrWhenDepositNoCents() throws Exception {
         acc(1, bd("10.00")).deposit(bd("1"));
     }

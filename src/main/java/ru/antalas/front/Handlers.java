@@ -10,7 +10,7 @@ import io.undertow.util.Headers;
 import ru.antalas.front.json.Account;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.Transfer;
-import ru.antalas.model.exceptions.ModelException;
+import ru.antalas.model.ModelException;
 import ru.antalas.persistence.Persistence;
 
 import java.util.Deque;

@@ -2,10 +2,6 @@ package ru.antalas.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import ru.antalas.model.exceptions.NegativeAmountException;
-import ru.antalas.model.exceptions.NonPositiveAmountException;
-import ru.antalas.model.exceptions.NotInCentsException;
-import ru.antalas.model.exceptions.OverdraftException;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -23,13 +19,8 @@ public class Account implements Comparable<Account> {
         checkNotNull(id);
         checkNotNull(balance);
 
-        if (balance.signum() == -1) {
-            throw new NegativeAmountException(balance.toPlainString());
-        }
-
-        if (balance.scale() != 2) {
-            throw new NotInCentsException(balance.toPlainString());
-        }
+        checkNonNegative(balance);
+        checkCentsSpecified(balance);
 
         this.id = id;
         this.balance = balance;
@@ -38,19 +29,12 @@ public class Account implements Comparable<Account> {
     public Account withdraw(BigDecimal amount) {
         checkNotNull(amount);
 
-        if (amount.signum() != 1) {
-            throw new NonPositiveAmountException(amount.toPlainString());
-        }
-
-        if (amount.scale() != 2) {
-            throw new NotInCentsException(amount.toPlainString());
-        }
+        checkPositive(amount);
+        checkCentsSpecified(amount);
 
         BigDecimal updated = balance.subtract(amount);
 
-        if (updated.signum() == -1) {
-            throw new OverdraftException();
-        }
+        checkOverdraft(updated);
 
         balance = updated;
         return this;
@@ -59,16 +43,35 @@ public class Account implements Comparable<Account> {
     public Account deposit(BigDecimal amount) {
         checkNotNull(amount);
 
-        if (amount.signum() != 1) {
-            throw new NonPositiveAmountException(amount.toPlainString());
-        }
-
-        if (amount.scale() != 2) {
-            throw new NotInCentsException(amount.toPlainString());
-        }
+        checkPositive(amount);
+        checkCentsSpecified(amount);
 
         balance = balance.add(amount);
         return this;
+    }
+
+    private static void checkPositive(BigDecimal amount) {
+        if (amount.signum() != 1) {
+            throw new ModelException(amount.toPlainString() + " is nonpositive.");
+        }
+    }
+
+    private static void checkNonNegative(BigDecimal balance) {
+        if (balance.signum() == -1) {
+            throw new ModelException(balance.toPlainString());
+        }
+    }
+
+    private static void checkCentsSpecified(BigDecimal amount) {
+        if (amount.scale() != 2) {
+            throw new ModelException(amount.toPlainString() + " no cents given.");
+        }
+    }
+
+    private static void checkOverdraft(BigDecimal updated) {
+        if (updated.signum() == -1) {
+            throw new ModelException("Overdraft, check balance.");
+        }
     }
 
     @Override

@@ -7,7 +7,7 @@ import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.BlockingHandler;
 import io.undertow.server.handlers.ExceptionHandler;
 import ru.antalas.front.Handlers;
-import ru.antalas.model.exceptions.ModelException;
+import ru.antalas.model.ModelException;
 
 public class Main {
     private static final RoutingHandler ROUTES = new RoutingHandler()
