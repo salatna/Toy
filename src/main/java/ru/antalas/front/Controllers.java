@@ -7,7 +7,7 @@ import io.undertow.util.Headers;
 import ru.antalas.back.Account;
 import ru.antalas.back.persistence.Persistence;
 import ru.antalas.front.json.Mapper;
-import ru.antalas.front.json.Transfer;
+import ru.antalas.front.json.request.Transfer;
 
 import java.math.BigDecimal;
 import java.util.Deque;
@@ -21,16 +21,12 @@ public class Controllers {
     private static final Persistence data = new Persistence();
 
     public static void createAccount(HttpServerExchange exchange) throws JsonProcessingException {
-        ru.antalas.front.json.Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<ru.antalas.front.json.Account>() {
+        ru.antalas.front.json.request.Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<ru.antalas.front.json.request.Account>() {
         });
 
         ru.antalas.model.Account account = Account.account(data, input);
 
-        sendJson(exchange, Operations.account(newAccountURI(exchange, account)));
-    }
-
-    private static String newAccountURI(HttpServerExchange exchange, ru.antalas.model.Account account) {
-        return exchange.getRequestURI() + "/" + account.getId();
+        sendJson(exchange, new ru.antalas.front.json.response.Account(account.getId()));
     }
 
     public static void account(HttpServerExchange exchange) throws JsonProcessingException {
