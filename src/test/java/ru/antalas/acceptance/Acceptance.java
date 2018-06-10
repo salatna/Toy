@@ -6,8 +6,8 @@ import io.restassured.response.Response;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ru.antalas.Main;
-import ru.antalas.front.json.request.Transfer;
-import ru.antalas.front.json.response.Account;
+import ru.antalas.front.json.Transfer;
+import ru.antalas.model.Account;
 
 import java.math.BigDecimal;
 
@@ -99,7 +99,7 @@ public class Acceptance {
         return
         given()
             .contentType("application/json")
-            .body(new ru.antalas.front.json.request.Account(amount)).
+            .body(new ru.antalas.front.json.Account(amount)).
         when()
             .post("/accounts");
     }

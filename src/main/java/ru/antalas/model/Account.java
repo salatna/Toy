@@ -1,5 +1,7 @@
 package ru.antalas.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.antalas.model.exceptions.OverdraftException;
 
 import java.math.BigDecimal;
@@ -14,7 +16,8 @@ public class Account implements Comparable<Account>{
 
     private BigDecimal balance;
 
-    public Account(Integer id, BigDecimal balance) {
+    @JsonCreator
+    public Account(@JsonProperty("id") Integer id, @JsonProperty("balance") BigDecimal balance) {
         checkNotNull(id);
         checkNotNull(balance);
         checkArgument(balance.signum() != -1);

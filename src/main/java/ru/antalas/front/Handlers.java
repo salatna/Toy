@@ -5,9 +5,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableMap;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
+import ru.antalas.front.json.Account;
 import ru.antalas.persistence.Persistence;
 import ru.antalas.front.json.Mapper;
-import ru.antalas.front.json.request.Transfer;
+import ru.antalas.front.json.Transfer;
 import ru.antalas.model.exceptions.OverdraftException;
 
 import java.util.Deque;
@@ -16,17 +17,17 @@ import java.util.Optional;
 
 import static io.undertow.util.Headers.CONTENT_TYPE;
 
-public class Controllers {
+public class Handlers {
     private static final Mapper mapper = new Mapper();
     private static final Persistence data = new Persistence();
 
     public static void createAccount(HttpServerExchange exchange) throws JsonProcessingException {
-        ru.antalas.front.json.request.Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<ru.antalas.front.json.request.Account>() {
+        Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<Account>() {
         });
 
         ru.antalas.model.Account account = data.createAccount(input.getBalance());
 
-        sendJson(exchange, new ru.antalas.front.json.response.Account(account.getId(), account.getBalance()));
+        sendJson(exchange, account);
     }
 
     public static void getAccount(HttpServerExchange exchange) throws JsonProcessingException {
@@ -37,7 +38,7 @@ public class Controllers {
 
         Object result;
         if (account.isPresent()) {
-            result = new ru.antalas.front.json.response.Account(account.get().getId(), account.get().getBalance());
+            result = account.get();
             sendJson(exchange, result);
         } else {
             exchange.setStatusCode(404);

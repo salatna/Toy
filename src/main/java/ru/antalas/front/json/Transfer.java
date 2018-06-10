@@ -1,4 +1,4 @@
-package ru.antalas.front.json.request;
+package ru.antalas.front.json;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

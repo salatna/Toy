@@ -5,14 +5,14 @@ import com.typesafe.config.ConfigFactory;
 import io.undertow.Undertow;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.BlockingHandler;
-import ru.antalas.front.Controllers;
+import ru.antalas.front.Handlers;
 
 public class Main {
     private static final RoutingHandler ROUTES = new RoutingHandler()
-            .post("/accounts", Controllers::createAccount)
-            .get("/accounts/{id}", Controllers::getAccount)
-            .post("/transfers", Controllers::transfer)
-            .setFallbackHandler(Controllers::notFoundHandler);
+            .post("/accounts", Handlers::createAccount)
+            .get("/accounts/{id}", Handlers::getAccount)
+            .post("/transfers", Handlers::transfer)
+            .setFallbackHandler(Handlers::notFoundHandler);
 
     public static void main(String[] args) throws Exception {
         Config config = ConfigFactory.load();
