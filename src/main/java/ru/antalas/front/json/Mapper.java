@@ -10,8 +10,12 @@ import java.io.InputStream;
 public class Mapper {
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public String json(Object in) throws JsonProcessingException {
-        return mapper.writeValueAsString(in);
+    public String json(Object in) {
+        try {
+            return mapper.writeValueAsString(in);
+        } catch (JsonProcessingException e) {
+            throw new JsonException(e);
+        }
     }
 
     public <T> T fromInputStream(InputStream is, TypeReference<T> typeRef) {

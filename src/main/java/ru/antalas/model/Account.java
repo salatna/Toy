@@ -50,26 +50,26 @@ public class Account implements Comparable<Account> {
         return this;
     }
 
-    private static void checkPositive(BigDecimal amount) {
-        if (amount.signum() != 1) {
-            throw new ModelException(amount.toPlainString() + " is nonpositive.");
+    private static void checkPositive(BigDecimal value) {
+        if (value.signum() != 1) {
+            throw new ModelException(value.toPlainString() + " is nonpositive.");
         }
     }
 
-    private static void checkNonNegative(BigDecimal balance) {
-        if (balance.signum() == -1) {
-            throw new ModelException(balance.toPlainString());
+    private static void checkNonNegative(BigDecimal value) {
+        if (value.signum() == -1) {
+            throw new ModelException(value.toPlainString());
         }
     }
 
-    private static void checkCentsSpecified(BigDecimal amount) {
-        if (amount.scale() != 2) {
-            throw new ModelException(amount.toPlainString() + " no cents given.");
+    private static void checkCentsSpecified(BigDecimal value) {
+        if (value.scale() != 2) {
+            throw new ModelException(value.toPlainString() + " no cents given.");
         }
     }
 
-    private static void checkOverdraft(BigDecimal updated) {
-        if (updated.signum() == -1) {
+    private static void checkOverdraft(BigDecimal value) {
+        if (value.signum() == -1) {
             throw new ModelException("Overdraft, check balance.");
         }
     }

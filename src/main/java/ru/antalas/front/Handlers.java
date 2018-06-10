@@ -23,7 +23,7 @@ public class Handlers {
     private static final Mapper mapper = new Mapper();
     private static final Persistence data = new Persistence();
 
-    public static void createAccount(HttpServerExchange exchange) throws JsonProcessingException {
+    public static void createAccount(HttpServerExchange exchange) {
         Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<Account>() {
         });
 
@@ -32,7 +32,7 @@ public class Handlers {
         sendJson(exchange, account);
     }
 
-    public static void getAccount(HttpServerExchange exchange) throws JsonProcessingException {
+    public static void getAccount(HttpServerExchange exchange) {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
         String id = params.get("id").getFirst();
 
@@ -46,14 +46,14 @@ public class Handlers {
 
     }
 
-    public static void transfer(HttpServerExchange exchange) throws JsonProcessingException {
+    public static void transfer(HttpServerExchange exchange) {
         Transfer transfer = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<Transfer>() {
         });
 
         data.transfer(transfer.getSourceAccountId(), transfer.getDestinationAccountId(), transfer.getAmount());
     }
 
-    private static void notFoundApiResult(HttpServerExchange exchange, String message) throws JsonProcessingException {
+    private static void notFoundApiResult(HttpServerExchange exchange, String message) {
         ApiError error = new ApiError(404, message);
         exchange.setStatusCode(error.getStatusCode());
         sendJson(exchange, error);
@@ -65,13 +65,19 @@ public class Handlers {
         exchange.getResponseSender().send("Page Not Found!");
     }
 
-    public static void handleModelException(HttpServerExchange exchange) throws JsonProcessingException {
+    public static void handleModelException(HttpServerExchange exchange) {
         ModelException ex = (ModelException) exchange.getAttachment(ExceptionHandler.THROWABLE);
         exchange.setStatusCode(400);
         sendJson(exchange, new ApiError(400, ex.getClass(), ex.getMessage()));
     }
 
-    private static void sendJson(HttpServerExchange exchange, Object content) throws JsonProcessingException {
+    public static void serverErrorHandler(HttpServerExchange exchange) {
+        ApiError error = new ApiError(500, "Internal Server Error");
+        exchange.setStatusCode(error.getStatusCode());
+        sendJson(exchange, error);
+    }
+
+    private static void sendJson(HttpServerExchange exchange, Object content) {
         exchange.getResponseHeaders().add(CONTENT_TYPE, "application/json");
         exchange.getResponseSender().send(mapper.json(content));
     }

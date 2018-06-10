@@ -25,7 +25,8 @@ public class Main {
                         new BlockingHandler(
                                 new ExceptionHandler(
                                         ROUTES
-                                ).addExceptionHandler(ModelException.class, Handlers::handleModelException)
+                                )   .addExceptionHandler(ModelException.class, Handlers::handleModelException)
+                                    .addExceptionHandler(Throwable.class, Handlers::serverErrorHandler)
                         ))
                 .build();
 

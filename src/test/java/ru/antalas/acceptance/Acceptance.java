@@ -46,6 +46,15 @@ public class Acceptance {
     }
 
     @Test
+    public void shouldErrWhenCreatingNegativeBalance() throws Exception {
+        givenAccountWith(new BigDecimal("-1.00")).
+        then()
+            .body("statusCode", is(400))
+            .body("message", is("-1.00"))
+            .statusCode(400);
+    }
+
+    @Test
     public void shouldReportMissingAccount() throws Exception {
         when()
             .get("/accounts/"+ MAX_VALUE).
@@ -129,8 +138,6 @@ public class Acceptance {
             .body("message", is(MAX_VALUE - 1 + " and " + MAX_VALUE + " not found."))
             .statusCode(400);
     }
-
-
 
     private static void assertAccountHasBalance(Account account, String expectedBalance) {
         when()
