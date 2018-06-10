@@ -9,6 +9,5 @@ Tech: Undertow + Embedded H2
 
 To run:
 * clone
-* mvn clean install
-* pray
-** fat jar to come
+* create a folder for server keystore and cacerts from email with invite
+* mvn clean verify
