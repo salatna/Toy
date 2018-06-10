@@ -12,7 +12,7 @@ public class Main {
             .post("/accounts", Handlers::createAccount)
             .get("/accounts/{id}", Handlers::getAccount)
             .post("/transfers", Handlers::transfer)
-            .setFallbackHandler(Handlers::notFoundHandler);
+            .setFallbackHandler(Handlers::notFoundFallbackHandler);
 
     public static void main(String[] args) throws Exception {
         Config config = ConfigFactory.load();

@@ -2,14 +2,13 @@ package ru.antalas.front;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.collect.ImmutableMap;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 import ru.antalas.front.json.Account;
-import ru.antalas.persistence.Persistence;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.Transfer;
 import ru.antalas.model.exceptions.OverdraftException;
+import ru.antalas.persistence.Persistence;
 
 import java.util.Deque;
 import java.util.Map;
@@ -41,8 +40,7 @@ public class Handlers {
             result = account.get();
             sendJson(exchange, result);
         } else {
-            exchange.setStatusCode(404);
-            sendJson(exchange, ImmutableMap.of("statusCode", 404, "message", "Account " + id + " not found."));
+            notFoundApiResult(exchange, "Account " + id + " not found.");
         }
 
     }
@@ -54,12 +52,23 @@ public class Handlers {
         try {
             data.transfer(transfer.getSourceAccountId(), transfer.getDestinationAccountId(), transfer.getAmount());
         }catch (OverdraftException e){
-            exchange.setStatusCode(400);
-            sendJson(exchange, ImmutableMap.of("statusCode", 400, "message", "Account " + transfer.getSourceAccountId() + " overdrawn."));
+            badRequest(exchange, e.getMessage());
         }
     }
 
-    public static void notFoundHandler(HttpServerExchange exchange) {
+    public static void badRequest(HttpServerExchange exchange, String message) throws JsonProcessingException {
+        ApiError error = new ApiError(400, message);
+        exchange.setStatusCode(error.getStatusCode());
+        sendJson(exchange, error);
+    }
+
+    public static void notFoundApiResult(HttpServerExchange exchange, String message) throws JsonProcessingException {
+        ApiError error = new ApiError(404, message);
+        exchange.setStatusCode(error.getStatusCode());
+        sendJson(exchange, error);
+    }
+
+    public static void notFoundFallbackHandler(HttpServerExchange exchange) {
         exchange.setStatusCode(404);
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
         exchange.getResponseSender().send("Page Not Found!");
@@ -69,4 +78,24 @@ public class Handlers {
         exchange.getResponseHeaders().add(CONTENT_TYPE, "application/json");
         exchange.getResponseSender().send(mapper.json(content));
     }
+
+    private static class ApiError {
+        private final int statusCode;
+        private final String message;
+
+        public ApiError(int statusCode, String message) {
+            super();
+            this.statusCode = statusCode;
+            this.message = message;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
 }
