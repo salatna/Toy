@@ -5,9 +5,13 @@ import ru.antalas.back.persistence.Persistence;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static java.lang.Integer.parseInt;
-
 public class Account {
+    public static ru.antalas.model.Account account(Persistence data, String id, String amount) {
+        ru.antalas.model.Account account = new ru.antalas.model.Account(Integer.valueOf(id), new BigDecimal(amount));
+        data.create(account);
+        return account;
+    }
+
     public static Optional<BigDecimal> amount(Persistence data, String item) {
         Integer accountId = Integer.valueOf(item);
         return data.amountAt(accountId);

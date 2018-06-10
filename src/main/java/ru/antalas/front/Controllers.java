@@ -7,7 +7,6 @@ import ru.antalas.back.persistence.Persistence;
 import ru.antalas.front.json.Mapper;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Optional;
@@ -23,7 +22,17 @@ public class Controllers {
         this.data = data;
     }
 
-    public void account(HttpServerExchange exchange) throws SQLException, JsonProcessingException {
+    public void createAccount(HttpServerExchange exchange) throws JsonProcessingException {
+        String id = exchange.getQueryParameters().get("id").getFirst();
+        String amount = exchange.getQueryParameters().get("amount").getFirst();
+
+        ru.antalas.model.Account account = Account.account(data, id, amount);
+
+        exchange.getResponseHeaders().add(CONTENT_TYPE, "application/json");
+        exchange.getResponseSender().send(mapper.json(Operations.account(account)));
+    }
+
+    public void account(HttpServerExchange exchange) throws JsonProcessingException {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
         String id = params.get("id").getFirst();
 
@@ -38,7 +47,7 @@ public class Controllers {
         }
     }
 
-    public void transfer(HttpServerExchange exchange) throws SQLException {
+    public void transfer(HttpServerExchange exchange) {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
         String src = params.get("src").getFirst();
         String dst = params.get("dst").getFirst();

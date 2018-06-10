@@ -8,6 +8,7 @@ import ru.antalas.Main;
 
 import java.math.BigDecimal;
 
+import static io.restassured.RestAssured.post;
 import static io.restassured.RestAssured.when;
 import static io.restassured.config.JsonConfig.jsonConfig;
 import static io.restassured.config.RestAssuredConfig.newConfig;
@@ -22,6 +23,10 @@ public class Acceptance {
         RestAssured.config = newConfig().jsonConfig(jsonConfig().numberReturnType(BIG_DECIMAL));
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = ConfigFactory.load().getInt("webserver.port");
+
+        post("/accounts/{id}/{amount}", 1, new BigDecimal("100.00"));
+        post("/accounts/{id}/{amount}", 2, new BigDecimal("0.00"));
+
     }
 
     @Test
