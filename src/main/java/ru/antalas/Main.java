@@ -4,14 +4,12 @@ import com.typesafe.config.Config;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import ru.antalas.back.persistence.Persistence;
 import ru.antalas.front.Controllers;
-
-import java.sql.Connection;
 
 import static com.typesafe.config.ConfigFactory.load;
 import static io.undertow.Handlers.exceptionHandler;
 import static io.undertow.Handlers.pathTemplate;
-import static ru.antalas.back.Persistence.initBack;
 import static ru.antalas.front.Routes.ACCOUNT;
 import static ru.antalas.front.Routes.TRANSFER;
 
@@ -20,8 +18,7 @@ public class Main {
         Config config = load("passwords.properties").
                 withFallback(load());
 
-        Connection conn = initBack(config);
-        Undertow server = initFront(config, new Controllers(conn));
+        Undertow server = initFront(config, new Controllers(new Persistence()));
 
         server.start();
     }
