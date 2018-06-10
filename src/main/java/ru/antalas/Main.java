@@ -14,15 +14,13 @@ public class Main {
             .setFallbackHandler(Controllers::notFoundHandler);
 
     public static void main(String[] args) throws Exception {
-        Undertow server = initFront(ConfigFactory.load());
+        Config config = ConfigFactory.load();
 
-        server.start();
-    }
-
-    private static Undertow initFront(Config config) throws Exception {
-        return Undertow.builder()
+        Undertow server = Undertow.builder()
                 .addHttpListener(config.getInt("webserver.port"), config.getString("webserver.host"))
                 .setHandler(ROUTES)
                 .build();
+
+        server.start();
     }
 }
