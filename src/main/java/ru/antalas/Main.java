@@ -10,7 +10,7 @@ import ru.antalas.front.Controllers;
 public class Main {
     private static final RoutingHandler ROUTES = new RoutingHandler()
             .post("/accounts", Controllers::createAccount)
-            .get("/account/{id}", Controllers::account)
+            .get("/accounts/{id}", Controllers::account)
             .get("/transfer/{src}/{dst}/{amt}", Controllers::transfer)
             .setFallbackHandler(Controllers::notFoundHandler);
 

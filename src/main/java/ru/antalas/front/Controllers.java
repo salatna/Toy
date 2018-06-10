@@ -20,11 +20,16 @@ public class Controllers {
     private static final Persistence data = new Persistence();
 
     public static void createAccount(HttpServerExchange exchange) throws JsonProcessingException {
-        ru.antalas.front.json.Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<ru.antalas.front.json.Account>() {});
+        ru.antalas.front.json.Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<ru.antalas.front.json.Account>() {
+        });
 
         ru.antalas.model.Account account = Account.account(data, input);
 
-        sendJson(exchange, Operations.account(account));
+        sendJson(exchange, Operations.account(newAccountURI(exchange, account)));
+    }
+
+    private static String newAccountURI(HttpServerExchange exchange, ru.antalas.model.Account account) {
+        return exchange.getRequestURI() + "/" + account.getId();
     }
 
     public static void account(HttpServerExchange exchange) throws JsonProcessingException {

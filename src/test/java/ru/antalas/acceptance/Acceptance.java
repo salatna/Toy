@@ -46,14 +46,14 @@ public class Acceptance {
         when()
             .post("/accounts").
         then()
-            .body("accountURI", is("/account/3"))
+            .body("accountURI", is("/accounts/3"))
             .statusCode(200);
     }
 
     @Test
     public void shouldGetAccount() throws Exception {
         when()
-            .get("/account/1").
+            .get("/accounts/1").
         then()
             .body("amount", is(new BigDecimal("100.00")));
     }
@@ -61,7 +61,7 @@ public class Acceptance {
     @Test
     public void shouldReportMissingAccount() throws Exception {
         when()
-            .get("/account/99").
+            .get("/accounts/99").
         then()
             .body("id", is("99"))
             .statusCode(404);
