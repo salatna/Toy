@@ -1,6 +1,7 @@
 package ru.antalas.front;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 import ru.antalas.back.Account;
@@ -19,13 +20,11 @@ public class Controllers {
     private static final Persistence data = new Persistence();
 
     public static void createAccount(HttpServerExchange exchange) throws JsonProcessingException {
-        String id = exchange.getQueryParameters().get("id").getFirst();
-        String amount = exchange.getQueryParameters().get("amount").getFirst();
+        ru.antalas.front.json.Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<ru.antalas.front.json.Account>() {});
 
-        ru.antalas.model.Account account = Account.account(data, id, amount);
+        ru.antalas.model.Account account = Account.account(data, input);
 
-        exchange.getResponseHeaders().add(CONTENT_TYPE, "application/json");
-        exchange.getResponseSender().send(mapper.json(Operations.account(account)));
+        sendJson(exchange, Operations.account(account));
     }
 
     public static void account(HttpServerExchange exchange) throws JsonProcessingException {
@@ -34,13 +33,11 @@ public class Controllers {
 
         Optional<BigDecimal> amount = Account.amount(data, id);
 
-        exchange.getResponseHeaders().add(CONTENT_TYPE, "application/json");
-        if (amount.isPresent()) {
-            exchange.getResponseSender().send(mapper.json(Operations.account(amount.get())));
-        } else {
+        if (!amount.isPresent()) {
             exchange.setStatusCode(404);
-            exchange.getResponseSender().send(mapper.json(Operations.accountNotFound(id)));
         }
+
+        sendJson(exchange, amount.isPresent() ? Operations.account(amount.get()) : Operations.accountNotFound(id));
     }
 
     public static void transfer(HttpServerExchange exchange) {
@@ -56,5 +53,10 @@ public class Controllers {
         exchange.setStatusCode(404);
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
         exchange.getResponseSender().send("Page Not Found!");
+    }
+
+    private static void sendJson(HttpServerExchange exchange, Object content) throws JsonProcessingException {
+        exchange.getResponseHeaders().add(CONTENT_TYPE, "application/json");
+        exchange.getResponseSender().send(mapper.json(content));
     }
 }

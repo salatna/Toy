@@ -47,7 +47,7 @@ public class Account implements Comparable<Account>{
     }
 
     @Override
-    public int compareTo(Account o) {
+    public int compareTo(@SuppressWarnings("NullableProblems") Account o) {
         return Comparator.<Integer>naturalOrder().compare(id, o.id);
     }
 
@@ -70,5 +70,13 @@ public class Account implements Comparable<Account>{
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id=" + id +
+                ", balance=" + balance +
+                '}';
     }
 }

@@ -4,11 +4,12 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.undertow.Undertow;
 import io.undertow.server.RoutingHandler;
+import io.undertow.server.handlers.BlockingHandler;
 import ru.antalas.front.Controllers;
 
 public class Main {
     private static final RoutingHandler ROUTES = new RoutingHandler()
-            .post("/accounts/{id}/{amount}", Controllers::createAccount)
+            .post("/accounts", Controllers::createAccount)
             .get("/account/{id}", Controllers::account)
             .get("/transfer/{src}/{dst}/{amt}", Controllers::transfer)
             .setFallbackHandler(Controllers::notFoundHandler);
@@ -18,7 +19,8 @@ public class Main {
 
         Undertow server = Undertow.builder()
                 .addHttpListener(config.getInt("webserver.port"), config.getString("webserver.host"))
-                .setHandler(ROUTES)
+                .setHandler(
+                        new BlockingHandler(ROUTES))
                 .build();
 
         server.start();

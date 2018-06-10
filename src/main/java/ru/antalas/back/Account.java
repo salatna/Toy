@@ -4,10 +4,15 @@ import ru.antalas.back.persistence.Persistence;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Account {
-    public static ru.antalas.model.Account account(Persistence data, String id, String amount) {
-        ru.antalas.model.Account account = new ru.antalas.model.Account(Integer.valueOf(id), new BigDecimal(amount));
+    private static final AtomicInteger accountIdSequence = new AtomicInteger();
+
+    public static ru.antalas.model.Account account(Persistence data, ru.antalas.front.json.Account input) {
+        int accountId = accountIdSequence.incrementAndGet();
+
+        ru.antalas.model.Account account = new ru.antalas.model.Account(accountId, input.getAmount());
         data.create(account);
         return account;
     }
