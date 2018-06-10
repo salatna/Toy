@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 
-public class Account {
+public class AccountDto {
     private final BigDecimal balance;
 
     @JsonCreator
-    public Account(@JsonProperty("balance") BigDecimal balance) {
+    public AccountDto(@JsonProperty("balance") BigDecimal balance) {
         this.balance = balance;
     }
 

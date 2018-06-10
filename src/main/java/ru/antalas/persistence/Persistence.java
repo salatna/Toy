@@ -20,7 +20,7 @@ public class Persistence {
 
     //equivalent isolation level: SERIALIZED
     private final ReadWriteLock accountsLock = new ReentrantReadWriteLock(true);
-    private final Map<Integer, Account> accounts = new ConcurrentHashMap<>();
+    private final Map<Integer, AccountEntry> accounts = new ConcurrentHashMap<>();
 
     public ru.antalas.model.Account createAccount(BigDecimal balance) {
         Lock lock = accountsLock.writeLock();
@@ -31,7 +31,7 @@ public class Persistence {
 
             accountIdSequence++;
 
-            accounts.put(data.getId(), new Account(data));
+            accounts.put(data.getId(), new AccountEntry(data));
             return data;
         } finally {
             lock.unlock();
@@ -44,7 +44,7 @@ public class Persistence {
             collectionLock.lock();
 
             if (accounts.containsKey(id)) {
-                Account entry = accounts.get(id);
+                AccountEntry entry = accounts.get(id);
                 Lock itemLock = entry.lock.readLock();
                 try {
                     itemLock.lock();
@@ -70,11 +70,11 @@ public class Persistence {
             collectionLock.lock();
 
             if (accounts.containsKey(srcId) && accounts.containsKey(dstId)) {
-                Account srcEntry = accounts.get(srcId);
-                Account dstEntry = accounts.get(dstId);
+                AccountEntry srcEntry = accounts.get(srcId);
+                AccountEntry dstEntry = accounts.get(dstId);
 
                 try {
-                    for (Account entry : srcEntry.inLockOrder(dstEntry)) {
+                    for (AccountEntry entry : srcEntry.inLockOrder(dstEntry)) {
                         entry.lock.writeLock().lock();
                     }
 
@@ -82,8 +82,8 @@ public class Persistence {
                     dstEntry.data.deposit(amount);
 
                 } finally {
-                    for (Account account : srcEntry.inLockOrder(dstEntry).reverse()) {
-                        account.lock.writeLock().unlock();
+                    for (AccountEntry entry : srcEntry.inLockOrder(dstEntry).reverse()) {
+                        entry.lock.writeLock().unlock();
                     }
                 }
             } else {
@@ -105,21 +105,21 @@ public class Persistence {
         return srcId + " and " + dstId + " not found.";
     }
 
-    private static class Account implements Comparable<Account> {
+    private static class AccountEntry implements Comparable<AccountEntry> {
         private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
         private final ru.antalas.model.Account data;
 
-        Account(ru.antalas.model.Account data) {
+        AccountEntry(ru.antalas.model.Account data) {
             this.data = data;
         }
 
-        ImmutableList<Account> inLockOrder(Account other) {
+        ImmutableList<AccountEntry> inLockOrder(AccountEntry other) {
             return this.compareTo(other) > 0 ? of(other, this) : of(this, other);
         }
 
         @Override
-        public int compareTo(@SuppressWarnings("NullableProblems") Account o) {
+        public int compareTo(@SuppressWarnings("NullableProblems") AccountEntry o) {
             return this.data.compareTo(o.data);
         }
     }

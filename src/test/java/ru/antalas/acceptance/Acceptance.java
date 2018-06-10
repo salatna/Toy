@@ -6,6 +6,7 @@ import io.restassured.response.Response;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ru.antalas.Main;
+import ru.antalas.front.json.AccountDto;
 import ru.antalas.front.json.Transfer;
 import ru.antalas.model.Account;
 
@@ -151,7 +152,7 @@ public class Acceptance {
         return
         given()
             .contentType("application/json")
-            .body(new ru.antalas.front.json.Account(amount)).
+            .body(new AccountDto(amount)).
         when()
             .post("/accounts");
     }

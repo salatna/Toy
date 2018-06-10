@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.ExceptionHandler;
 import io.undertow.util.Headers;
-import ru.antalas.front.json.Account;
+import ru.antalas.front.json.AccountDto;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.Transfer;
 import ru.antalas.persistence.Persistence;
@@ -22,7 +22,7 @@ public class Handlers {
     private static final Persistence data = new Persistence();
 
     public static void createAccount(HttpServerExchange exchange) {
-        Account input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<Account>() {
+        AccountDto input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<AccountDto>() {
         });
 
         ru.antalas.model.Account account = data.createAccount(input.getBalance());
