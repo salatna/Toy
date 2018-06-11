@@ -27,10 +27,12 @@ public class Persistence {
     public Account createAccount(BigDecimal balance) {
         Account data = Account.fromSequence(sequence, balance);
 
+        // concurrency: phantom reads
         accounts.put(data.getId(), new AccountEntry(data));
         return data;
     }
 
+    // concurrency: may return removed accounts
     public Account getAccount(Integer id) {
         if (!accounts.containsKey(id)) {
             throw new NotFoundException("Not found");
@@ -41,7 +43,7 @@ public class Persistence {
             throw new NotFoundException("Not found");
         }
 
-        //race condition: entry may already be excluded from accounts
+        // concurrency: optimistic, entry may already be excluded from accounts
         Lock itemLock = entry.lock.readLock();
         try {
             itemLock.lock();
