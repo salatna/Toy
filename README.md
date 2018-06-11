@@ -14,6 +14,7 @@ To run:
 ---
 
 Design hiccups and sneezes:
+* no transaction history
 * persistence layer mixed with Domain Model
 * Domain Model exceptions text published to the Outside
 * internal entity identifiers published to the Outside
