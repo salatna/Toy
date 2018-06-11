@@ -1,6 +1,7 @@
 package ru.antalas.persistence;
 
 import com.google.common.collect.ImmutableList;
+import ru.antalas.model.Account;
 import ru.antalas.model.ModelException;
 
 import java.math.BigDecimal;
@@ -15,30 +16,24 @@ import static com.google.common.collect.ImmutableList.of;
 import static java.util.Optional.empty;
 
 public class Persistence {
-    //protected by accountsLock
-    private int accountIdSequence = 1;
-
     //equivalent isolation level: SERIALIZED
     private final ReadWriteLock accountsLock = new ReentrantReadWriteLock(true);
     private final Map<Integer, AccountEntry> accounts = new ConcurrentHashMap<>();
 
-    public ru.antalas.model.Account createAccount(BigDecimal balance) {
-        Lock lock = accountsLock.writeLock();
-        try {
-            lock.lock();
+    private final SequenceGenerator sequence;
 
-            ru.antalas.model.Account data = new ru.antalas.model.Account(accountIdSequence, balance);
-
-            accountIdSequence++;
-
-            accounts.put(data.getId(), new AccountEntry(data));
-            return data;
-        } finally {
-            lock.unlock();
-        }
+    public Persistence(SequenceGenerator sequence) {
+        this.sequence = sequence;
     }
 
-    public Optional<ru.antalas.model.Account> getAccount(Integer id) {
+    public Account createAccount(BigDecimal balance) {
+        Account data = Account.fromSequence(sequence, balance);
+
+        accounts.put(data.getId(), new AccountEntry(data));
+        return data;
+    }
+
+    public Optional<Account> getAccount(Integer id) {
         Lock collectionLock = accountsLock.readLock();
         try {
             collectionLock.lock();
@@ -95,10 +90,10 @@ public class Persistence {
     }
 
     private String notFoundMessageFrom(Integer srcId, Integer dstId) {
-        if (accounts.containsKey(srcId)){
+        if (accounts.containsKey(srcId)) {
             return dstId + " not found.";
         }
-        if (accounts.containsKey(dstId)){
+        if (accounts.containsKey(dstId)) {
             return srcId + " not found.";
         }
 
@@ -108,9 +103,9 @@ public class Persistence {
     private static class AccountEntry implements Comparable<AccountEntry> {
         private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-        private final ru.antalas.model.Account data;
+        private final Account data;
 
-        AccountEntry(ru.antalas.model.Account data) {
+        AccountEntry(Account data) {
             this.data = data;
         }
 

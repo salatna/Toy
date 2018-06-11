@@ -18,7 +18,7 @@ public class PersistenceTest {
 
     @Before
     public void setUp() throws Exception {
-        persistence = new Persistence();
+        persistence = new Persistence(new SequenceGenerator.AtomicIntegerSequence());
 
         persistence.createAccount(new BigDecimal("100.00"));
         persistence.createAccount(new BigDecimal("0.00"));

@@ -2,6 +2,7 @@ package ru.antalas.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ru.antalas.persistence.SequenceGenerator;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -24,6 +25,15 @@ public class Account implements Comparable<Account> {
 
         this.id = id;
         this.balance = balance;
+    }
+
+    public static Account fromSequence(SequenceGenerator sequence, BigDecimal balance) {
+        checkNotNull(balance);
+
+        checkNonNegative(balance);
+        checkCentsSpecified(balance);
+
+        return new Account(sequence.next(), balance);
     }
 
     public Account withdraw(BigDecimal amount) {

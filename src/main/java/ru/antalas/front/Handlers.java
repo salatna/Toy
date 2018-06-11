@@ -10,6 +10,7 @@ import ru.antalas.front.json.AccountDto;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.Transfer;
 import ru.antalas.persistence.Persistence;
+import ru.antalas.persistence.SequenceGenerator;
 
 import java.util.Deque;
 import java.util.Map;
@@ -19,7 +20,7 @@ import static io.undertow.util.Headers.CONTENT_TYPE;
 
 public class Handlers {
     private static final Mapper mapper = new Mapper();
-    private static final Persistence data = new Persistence();
+    private static final Persistence data = new Persistence(new SequenceGenerator.AtomicIntegerSequence());
 
     public static void createAccount(HttpServerExchange exchange) {
         AccountDto input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<AccountDto>() {
