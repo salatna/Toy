@@ -18,6 +18,7 @@ Design hiccups and sneezes:
 * Domain Model exceptions text published to the Outside
 * internal entity identifiers published to the Outside
 * REST HAEOTAS not followed
+* no API versioning
 
 Implementation hiccups and sneezes:
 * no integration tests with Underflow
