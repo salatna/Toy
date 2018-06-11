@@ -9,13 +9,14 @@ import io.undertow.server.handlers.ExceptionHandler;
 import ru.antalas.front.Handlers;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.model.ModelException;
+import ru.antalas.model.NotFoundException;
 
 public class Main {
     private static final RoutingHandler ROUTES = new RoutingHandler()
             .post("/accounts", Handlers::createAccount)
             .get("/accounts/{id}", Handlers::getAccount)
             .post("/transfers", Handlers::transfer)
-            .setFallbackHandler(Handlers::notFoundFallbackHandler);
+            .setFallbackHandler(Handlers::handleFallbackNotFound);
 
     public static void main(String[] args) throws Exception {
         Config config = ConfigFactory.load();
@@ -26,9 +27,10 @@ public class Main {
                         new BlockingHandler(
                                 new ExceptionHandler(
                                         ROUTES
-                                ).addExceptionHandler(ModelException.class, Handlers::handleBadRequest)
+                                ).addExceptionHandler(NotFoundException.class, Handlers::handleNotFoundApi)
+                                        .addExceptionHandler(ModelException.class, Handlers::handleBadRequest)
                                         .addExceptionHandler(Mapper.JsonException.class, Handlers::handleBadRequest)
-                                        .addExceptionHandler(Throwable.class, Handlers::serverErrorHandler)
+                                        .addExceptionHandler(Throwable.class, Handlers::handleServerError)
                         ))
                 .build();
 

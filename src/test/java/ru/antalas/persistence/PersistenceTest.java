@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.antalas.model.Account;
 import ru.antalas.model.ModelException;
+import ru.antalas.model.NotFoundException;
 
 import java.math.BigDecimal;
 
@@ -42,21 +43,21 @@ public class PersistenceTest {
 
     @Test
     public void shouldGetAmountForAccount() throws Exception {
-        assertThat(persistence.getAccount(1), is(of(new Account(1, new BigDecimal("100.00")))));
-        assertThat(persistence.getAccount(2), is(of(new Account(2, new BigDecimal("0.00")))));
+        assertThat(persistence.getAccount(1), is(new Account(1, new BigDecimal("100.00"))));
+        assertThat(persistence.getAccount(2), is(new Account(2, new BigDecimal("0.00"))));
     }
 
-    @Test
+    @Test(expected = NotFoundException.class)
     public void shouldReportMissingAccount() throws Exception {
-        assertThat(persistence.getAccount(3), is(empty()));
+        persistence.getAccount(3);
     }
 
     @Test
     public void shouldTransfer() throws Exception {
         persistence.transfer(1, 2, new BigDecimal("100.00"));
 
-        assertThat(persistence.getAccount(1), is(of(new Account(1, new BigDecimal("0.00")))));
-        assertThat(persistence.getAccount(2), is(of(new Account(2, new BigDecimal("100.00")))));
+        assertThat(persistence.getAccount(1), is(new Account(1, new BigDecimal("0.00"))));
+        assertThat(persistence.getAccount(2), is(new Account(2, new BigDecimal("100.00"))));
     }
 
     @Test(expected = ModelException.class)

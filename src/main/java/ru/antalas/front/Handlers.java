@@ -9,12 +9,12 @@ import io.undertow.util.Headers;
 import ru.antalas.front.json.AccountDto;
 import ru.antalas.front.json.Mapper;
 import ru.antalas.front.json.Transfer;
+import ru.antalas.model.Account;
 import ru.antalas.persistence.Persistence;
 import ru.antalas.persistence.SequenceGenerator;
 
 import java.util.Deque;
 import java.util.Map;
-import java.util.Optional;
 
 import static io.undertow.util.Headers.CONTENT_TYPE;
 
@@ -26,7 +26,7 @@ public class Handlers {
         AccountDto input = mapper.fromInputStream(exchange.getInputStream(), new TypeReference<AccountDto>() {
         });
 
-        ru.antalas.model.Account account = data.createAccount(input.getBalance());
+        Account account = data.createAccount(input.getBalance());
 
         sendJson(exchange, account);
     }
@@ -35,14 +35,9 @@ public class Handlers {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
         String id = params.get("id").getFirst();
 
-        Optional<ru.antalas.model.Account> account = data.getAccount(Integer.parseInt(id));
+        Account account = data.getAccount(Integer.parseInt(id));
 
-        if (account.isPresent()) {
-            sendJson(exchange, account.get());
-        } else {
-            notFoundApiResult(exchange, "Account " + id + " not found.");
-        }
-
+        sendJson(exchange, account);
     }
 
     public static void transfer(HttpServerExchange exchange) {
@@ -52,16 +47,16 @@ public class Handlers {
         data.transfer(transfer.getSourceAccountId(), transfer.getDestinationAccountId(), transfer.getAmount());
     }
 
-    private static void notFoundApiResult(HttpServerExchange exchange, String message) {
-        ApiError error = new ApiError(404, message);
-        exchange.setStatusCode(error.getStatusCode());
-        sendJson(exchange, error);
-    }
-
-    public static void notFoundFallbackHandler(HttpServerExchange exchange) {
+    public static void handleFallbackNotFound(HttpServerExchange exchange) {
         exchange.setStatusCode(404);
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
         exchange.getResponseSender().send("Page Not Found!");
+    }
+
+    public static void handleNotFoundApi(HttpServerExchange exchange) {
+        Throwable ex = exchange.getAttachment(ExceptionHandler.THROWABLE);
+        exchange.setStatusCode(404);
+        sendJson(exchange, new ApiError(404, ex.getMessage()));
     }
 
     public static void handleBadRequest(HttpServerExchange exchange) {
@@ -70,10 +65,9 @@ public class Handlers {
         sendJson(exchange, new ApiError(400, ex.getMessage()));
     }
 
-    public static void serverErrorHandler(HttpServerExchange exchange) {
-        ApiError error = new ApiError(500, "Internal Server Error");
-        exchange.setStatusCode(error.getStatusCode());
-        sendJson(exchange, error);
+    public static void handleServerError(HttpServerExchange exchange) {
+        exchange.setStatusCode(500);
+        sendJson(exchange, new ApiError(500, "Internal Server Error"));
     }
 
     private static void sendJson(HttpServerExchange exchange, Object content) {

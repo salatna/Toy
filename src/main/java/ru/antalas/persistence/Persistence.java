@@ -3,20 +3,18 @@ package ru.antalas.persistence;
 import com.google.common.collect.ImmutableList;
 import ru.antalas.model.Account;
 import ru.antalas.model.ModelException;
+import ru.antalas.model.NotFoundException;
 
 import java.math.BigDecimal;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.google.common.collect.ImmutableList.of;
-import static java.util.Optional.empty;
 
 public class Persistence {
-    //equivalent isolation level: SERIALIZED
     private final ReadWriteLock accountsLock = new ReentrantReadWriteLock(true);
     private final Map<Integer, AccountEntry> accounts = new ConcurrentHashMap<>();
 
@@ -33,25 +31,23 @@ public class Persistence {
         return data;
     }
 
-    public Optional<Account> getAccount(Integer id) {
-        Lock collectionLock = accountsLock.readLock();
-        try {
-            collectionLock.lock();
+    public Account getAccount(Integer id) {
+        if (!accounts.containsKey(id)) {
+            throw new NotFoundException("Not found");
+        }
 
-            if (accounts.containsKey(id)) {
-                AccountEntry entry = accounts.get(id);
-                Lock itemLock = entry.lock.readLock();
-                try {
-                    itemLock.lock();
-                    return Optional.of(entry.data);
-                } finally {
-                    itemLock.unlock();
-                }
-            } else {
-                return empty();
-            }
+        AccountEntry entry = accounts.get(id);
+        if (entry == null) {
+            throw new NotFoundException("Not found");
+        }
+
+        //race condition: entry may already be excluded from accounts
+        Lock itemLock = entry.lock.readLock();
+        try {
+            itemLock.lock();
+            return entry.data;
         } finally {
-            collectionLock.unlock();
+            itemLock.unlock();
         }
     }
 
